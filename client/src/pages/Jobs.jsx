@@ -1,18 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useConfirm } from '../useConfirm';
 import EmptyState from '../components/EmptyState';
 
 // Colors match the Fleet page conventions: blue = printing, green = done.
 // Cancelled gets a line-through as a non-color cue against Queued.
 const JOB_STATUS = {
-  queued:    { bg: '#1f2937', text: '#9ca3af', label: 'Queued' },
-  uploading: { bg: '#3b2c69', text: '#a78bfa', label: 'Uploading' },
-  printing:  { bg: '#1e3a5f', text: '#60a5fa', label: 'Printing' },
-  awaiting:  { bg: '#14532d', text: '#4ade80', label: 'Awaiting Sign-off' },
-  finished:  { bg: '#14532d', text: '#86efac', label: 'Finished' },
-  failed:    { bg: '#7f1d1d', text: '#f87171', label: 'Failed' },
-  cancelled: { bg: '#111827', text: '#6b7280', label: 'Cancelled', strike: true },
+  queued:    { bg: '#1f2937', text: '#9ca3af', labelKey: 'jobs.statusQueued' },
+  uploading: { bg: '#3b2c69', text: '#a78bfa', labelKey: 'common.statusUploading' },
+  printing:  { bg: '#1e3a5f', text: '#60a5fa', labelKey: 'common.statusPrinting' },
+  awaiting:  { bg: '#14532d', text: '#4ade80', labelKey: 'dashboard.awaitingSignoff' },
+  finished:  { bg: '#14532d', text: '#86efac', labelKey: 'common.statusFinished' },
+  failed:    { bg: '#7f1d1d', text: '#f87171', labelKey: 'jobs.statusFailed' },
+  cancelled: { bg: '#111827', text: '#6b7280', labelKey: 'jobs.statusCancelled', strike: true },
 };
 
 // The printer can be held (awaiting operator sign-off) while the job row is still
@@ -55,6 +56,7 @@ const selectSx = {
 };
 
 export default function Jobs() {
+  const { t } = useTranslation();
   const [confirm, confirmModal]   = useConfirm();
   const [jobs, setJobs]           = useState([]);
   const [loading, setLoading]     = useState(true);
@@ -106,9 +108,9 @@ export default function Jobs() {
 
   async function cancelJob(jobId) {
     const ok = await confirm({
-      title: 'Cancel Job',
-      message: 'Remove this job from the queue?',
-      confirmLabel: 'Cancel Job',
+      title: t('jobs.cancelJobTitle'),
+      message: t('jobs.cancelJobMessage'),
+      confirmLabel: t('jobs.cancelJobTitle'),
       danger: true,
     });
     if (!ok) return;
@@ -119,40 +121,40 @@ export default function Jobs() {
   return (
     <div>
       {confirmModal}
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>Job Queue</h1>
+      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16 }}>{t('jobs.title')}</h1>
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
         <select value={statusFilter} onChange={(e) => setStatus(e.target.value)} style={selectSx}>
           {STATUS_OPTIONS.map(s => (
-            <option key={s} value={s}>{s === 'all' ? 'All statuses' : s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            <option key={s} value={s}>{s === 'all' ? t('jobs.allStatuses') : t(JOB_STATUS[s].labelKey)}</option>
           ))}
         </select>
 
         <select value={projectFilter} onChange={(e) => setProject(e.target.value)} style={selectSx}>
-          <option value="">All projects</option>
+          <option value="">{t('jobs.allProjects')}</option>
           {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
 
         <select value={printerFilter} onChange={(e) => setPrinter(e.target.value)} style={selectSx}>
-          <option value="">All printers</option>
+          <option value="">{t('jobs.allPrinters')}</option>
           {printers.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
 
         <span style={{ color: '#475569', fontSize: 13, marginLeft: 4 }}>
-          {jobs.length} job{jobs.length !== 1 ? 's' : ''}
+          {t('jobs.jobCount', { count: jobs.length })}
         </span>
       </div>
 
-      {loading && <p style={{ color: '#64748b' }}>Loading…</p>}
+      {loading && <p style={{ color: '#64748b' }}>{t('common.loading')}</p>}
       {!loading && jobs.length === 0 && (
         statusFilter !== 'all' || projectFilter || printerFilter ? (
-          <p style={{ color: '#64748b' }}>No jobs match the current filters — try clearing them.</p>
+          <p style={{ color: '#64748b' }}>{t('jobs.noJobsMatchFilters')}</p>
         ) : (
           <EmptyState
-            title="No jobs yet"
-            hint="Jobs are created automatically: when a project is Active and one of its parts has G-code uploaded, the scheduler dispatches jobs to idle printers of the matching model. If you expected a job here, check that the project is Active and a matching printer is idle (not held or decommissioned)."
-            actionLabel="Go to Projects"
+            title={t('jobs.emptyTitle')}
+            hint={t('jobs.emptyHint')}
+            actionLabel={t('jobs.emptyActionLabel')}
             actionTo="/projects"
           />
         )
@@ -170,13 +172,15 @@ export default function Jobs() {
       {jobs.length > 0 && (
         <div className="jobs-cards">
           {jobs.map(job => {
-            const st = JOB_STATUS[displayJobStatus(job)] || { bg: '#1f2937', text: '#9ca3af', label: job.status };
+            const stEntry = JOB_STATUS[displayJobStatus(job)];
+            const st = stEntry || { bg: '#1f2937', text: '#9ca3af' };
+            const label = stEntry ? t(stEntry.labelKey) : job.status;
             return (
               <div key={job.id} style={{ background: '#1e2433', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#cbd5e1' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                   <span style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.part_name}</span>
                   <span style={{ background: st.bg, color: st.text, borderRadius: 4, padding: '2px 8px', fontSize: 11, fontWeight: 700, flexShrink: 0, textDecoration: st.strike ? 'line-through' : 'none' }}>
-                    {st.label}
+                    {label}
                   </span>
                 </div>
                 <div style={{ color: '#94a3b8', fontSize: 12, marginBottom: 2 }}>
@@ -192,7 +196,7 @@ export default function Jobs() {
                       onClick={() => cancelJob(job.id)}
                       style={{ background: '#7f1d1d', color: '#f87171', border: 'none', borderRadius: 4, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
                     >
-                      Cancel
+                      {t('common.cancel')}
                     </button>
                   )}
                 </div>
@@ -207,20 +211,22 @@ export default function Jobs() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ color: '#64748b', textAlign: 'left', borderBottom: '1px solid #2d3748' }}>
-                <th style={{ padding: '6px 10px', fontWeight: 600 }}>ID</th>
-                <th style={{ padding: '6px 10px', fontWeight: 600 }}>Part</th>
-                <th style={{ padding: '6px 10px', fontWeight: 600 }}>Project</th>
-                <th style={{ padding: '6px 10px', fontWeight: 600 }}>Printer</th>
-                <th style={{ padding: '6px 10px', fontWeight: 600 }}>Model</th>
-                <th style={{ padding: '6px 10px', fontWeight: 600 }}>Status</th>
-                <th style={{ padding: '6px 10px', fontWeight: 600 }}>Started</th>
-                <th style={{ padding: '6px 10px', fontWeight: 600 }}>Duration</th>
+                <th style={{ padding: '6px 10px', fontWeight: 600 }}>{t('jobs.colId')}</th>
+                <th style={{ padding: '6px 10px', fontWeight: 600 }}>{t('jobs.colPart')}</th>
+                <th style={{ padding: '6px 10px', fontWeight: 600 }}>{t('jobs.colProject')}</th>
+                <th style={{ padding: '6px 10px', fontWeight: 600 }}>{t('jobs.colPrinter')}</th>
+                <th style={{ padding: '6px 10px', fontWeight: 600 }}>{t('jobs.colModel')}</th>
+                <th style={{ padding: '6px 10px', fontWeight: 600 }}>{t('jobs.colStatus')}</th>
+                <th style={{ padding: '6px 10px', fontWeight: 600 }}>{t('jobs.colStarted')}</th>
+                <th style={{ padding: '6px 10px', fontWeight: 600 }}>{t('jobs.colDuration')}</th>
                 <th style={{ padding: '6px 10px', fontWeight: 600 }}></th>
               </tr>
             </thead>
             <tbody>
               {jobs.map(job => {
-                const st = JOB_STATUS[displayJobStatus(job)] || { bg: '#1f2937', text: '#9ca3af', label: job.status };
+                const stEntry = JOB_STATUS[displayJobStatus(job)];
+                const st = stEntry || { bg: '#1f2937', text: '#9ca3af' };
+                const label = stEntry ? t(stEntry.labelKey) : job.status;
                 return (
                   <tr
                     key={job.id}
@@ -242,7 +248,7 @@ export default function Jobs() {
                     </td>
                     <td style={{ padding: '8px 10px' }}>
                       <span style={{ background: st.bg, color: st.text, borderRadius: 4, padding: '2px 8px', fontSize: 11, fontWeight: 700, textDecoration: st.strike ? 'line-through' : 'none' }}>
-                        {st.label}
+                        {label}
                       </span>
                     </td>
                     <td style={{ padding: '8px 10px', color: '#64748b', whiteSpace: 'nowrap' }}>
@@ -263,7 +269,7 @@ export default function Jobs() {
                             fontWeight: 600, cursor: 'pointer',
                           }}
                         >
-                          Cancel
+                          {t('common.cancel')}
                         </button>
                       )}
                     </td>

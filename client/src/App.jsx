@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Dashboard from './pages/Dashboard';
 import Fleet from './pages/Fleet';
 import Printers from './pages/Printers';
@@ -10,13 +11,13 @@ import Settings from './pages/Settings';
 import Decommissioned from './pages/Decommissioned';
 
 const NAV_ITEMS = [
-  { to: '/',               label: 'Dashboard' },
-  { to: '/fleet',          label: 'Fleet' },
-  { to: '/printers',       label: 'Printers',      end: true },
-  { to: '/projects',       label: 'Projects' },
-  { to: '/jobs',           label: 'Jobs' },
-  { to: '/decommissioned', label: 'Decommissioned' },
-  { to: '/settings',       label: 'Settings' },
+  { to: '/',               key: 'nav.dashboard' },
+  { to: '/fleet',          key: 'nav.fleet' },
+  { to: '/printers',       key: 'nav.printers', end: true },
+  { to: '/projects',       key: 'nav.projects' },
+  { to: '/jobs',           key: 'nav.jobs' },
+  { to: '/decommissioned', key: 'nav.decommissioned' },
+  { to: '/settings',       key: 'nav.settings' },
 ];
 
 const navLinkStyle = ({ isActive }) => ({
@@ -33,8 +34,9 @@ const navLinkStyle = ({ isActive }) => ({
 });
 
 export default function App() {
+  const { t } = useTranslation();
   // Operator-configurable farm name (Settings → Farm Name)
-  const [farmName, setFarmName] = useState('Print Farm');
+  const [farmName, setFarmName] = useState(t('app.defaultFarmName'));
   useEffect(() => {
     fetch('/api/settings')
       .then(r => r.json())
@@ -69,11 +71,11 @@ export default function App() {
         <nav id="sidebar">
           <div style={{ padding: '0 6px 16px', borderBottom: '1px solid #1e2433', marginBottom: 8 }}>
             <div style={{ fontWeight: 800, fontSize: 15, color: '#e2e8f0', lineHeight: 1.3 }}>{farmName}</div>
-            <div style={{ fontWeight: 400, fontSize: 11, color: '#475569' }}>Print Farm Manager</div>
+            <div style={{ fontWeight: 400, fontSize: 11, color: '#475569' }}>{t('app.subtitle')}</div>
           </div>
           {NAV_ITEMS.map((item) => (
             <NavLink key={item.to} to={item.to} end={item.to === '/' || !!item.end} style={navLinkStyle}>
-              {item.label}
+              {t(item.key)}
             </NavLink>
           ))}
         </nav>
@@ -96,7 +98,7 @@ export default function App() {
                 fontWeight: isActive ? 700 : 400,
               })}
             >
-              {item.label}
+              {t(item.key)}
             </NavLink>
           ))}
         </nav>

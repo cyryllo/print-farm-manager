@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 function formatTimestamp(ms) {
   if (!ms) return '—';
@@ -25,24 +26,25 @@ function formatHours(ms) {
 }
 
 const EVENT_META = {
-  decommission:  { label: 'Decommissioned', bg: '#7f1d1d', color: '#fca5a5' },
-  recommission:  { label: 'Recommissioned', bg: '#14532d', color: '#86efac' },
-  job_finished:  { label: 'Job Finished',   bg: '#1e3a5f', color: '#93c5fd' },
-  job_failed:    { label: 'Job Failed',      bg: '#78350f', color: '#fcd34d' },
-  note:          { label: 'Note',            bg: '#1e2433', color: '#94a3b8' },
-  info_changed:  { label: 'Info Updated',   bg: '#1e2a3a', color: '#7dd3fc' },
+  decommission:  { labelKey: 'common.statusDecommissioned', bg: '#7f1d1d', color: '#fca5a5' },
+  recommission:  { labelKey: 'printerDetail.eventRecommission', bg: '#14532d', color: '#86efac' },
+  job_finished:  { labelKey: 'printerDetail.eventJobFinished',  bg: '#1e3a5f', color: '#93c5fd' },
+  job_failed:    { labelKey: 'printerDetail.eventJobFailed',    bg: '#78350f', color: '#fcd34d' },
+  note:          { labelKey: 'printerDetail.eventNote',         bg: '#1e2433', color: '#94a3b8' },
+  info_changed:  { labelKey: 'printerDetail.eventInfoChanged',  bg: '#1e2a3a', color: '#7dd3fc' },
 };
 
 function EventBadge({ type }) {
-  const m = EVENT_META[type] || { label: type, bg: '#1e2433', color: '#64748b' };
+  const { t } = useTranslation();
+  const m = EVENT_META[type];
   return (
     <span style={{
-      background: m.bg, color: m.color,
+      background: m ? m.bg : '#1e2433', color: m ? m.color : '#64748b',
       borderRadius: 4, padding: '2px 9px',
       fontSize: 11, fontWeight: 700,
       letterSpacing: '0.04em', whiteSpace: 'nowrap',
     }}>
-      {m.label}
+      {m ? t(m.labelKey) : type}
     </span>
   );
 }
@@ -72,6 +74,7 @@ const detailInputStyle = {
 };
 
 export default function PrinterDetail() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -153,7 +156,7 @@ export default function PrinterDetail() {
     e.preventDefault();
     const trimmed = nameDraft.trim();
     if (!trimmed) {
-      setNameError('Name cannot be empty');
+      setNameError(t('printerDetail.nameEmptyError'));
       return;
     }
     if (trimmed === printer.name) {
@@ -170,7 +173,7 @@ export default function PrinterDetail() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setNameError(body.error || `Rename failed (${res.status})`);
+        setNameError(body.error || t('printerDetail.renameFailed', { status: res.status }));
         return;
       }
       setPrinter(await res.json());
@@ -204,7 +207,7 @@ export default function PrinterDetail() {
   async function submitEditDetails(e) {
     e.preventDefault();
     const ip = detailsDraft.ip.trim();
-    if (!ip) { setDetailsError('IP address is required'); return; }
+    if (!ip) { setDetailsError(t('printerDetail.ipRequired')); return; }
     setSavingDetails(true);
     setDetailsError(null);
     try {
@@ -223,7 +226,7 @@ export default function PrinterDetail() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setDetailsError(body.error || `Save failed (${res.status})`);
+        setDetailsError(body.error || t('printerDetail.saveFailed', { status: res.status }));
         return;
       }
       setPrinter(await res.json());
@@ -233,8 +236,8 @@ export default function PrinterDetail() {
     }
   }
 
-  if (loading) return <p style={{ color: '#64748b' }}>Loading…</p>;
-  if (!printer) return <p style={{ color: '#fca5a5' }}>Printer not found.</p>;
+  if (loading) return <p style={{ color: '#64748b' }}>{t('common.loading')}</p>;
+  if (!printer) return <p style={{ color: '#fca5a5' }}>{t('printerDetail.notFound')}</p>;
 
   const sc = STATUS_COLORS[printer.status] || STATUS_COLORS.UNKNOWN;
 
@@ -248,7 +251,7 @@ export default function PrinterDetail() {
           fontSize: 13, cursor: 'pointer', padding: 0, marginBottom: 18,
         }}
       >
-        ← All Printers
+        ← {t('printerDetail.backToAllPrinters')}
       </button>
 
       {/* Printer header card */}
@@ -284,7 +287,7 @@ export default function PrinterDetail() {
                   cursor: renaming || !nameDraft.trim() ? 'not-allowed' : 'pointer',
                 }}
               >
-                {renaming ? 'Saving…' : 'Save'}
+                {renaming ? t('common.saving') : t('common.save')}
               </button>
               <button
                 type="button"
@@ -297,7 +300,7 @@ export default function PrinterDetail() {
                   cursor: renaming ? 'not-allowed' : 'pointer',
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </form>
           ) : (
@@ -305,7 +308,7 @@ export default function PrinterDetail() {
               <span style={{ fontWeight: 800, fontSize: 20, color: '#e2e8f0' }}>{printer.name}</span>
               <button
                 onClick={startRename}
-                title="Rename printer"
+                title={t('printerDetail.renameTitle')}
                 style={{
                   background: 'none', border: '1px solid #2d3748',
                   color: '#94a3b8', borderRadius: 5,
@@ -313,7 +316,7 @@ export default function PrinterDetail() {
                   cursor: 'pointer', letterSpacing: '0.04em',
                 }}
               >
-                Rename
+                {t('printerDetail.rename')}
               </button>
               {printer.is_active ? (
                 <span style={{
@@ -327,7 +330,7 @@ export default function PrinterDetail() {
                   background: '#1e2433', color: '#ef4444',
                   borderRadius: 4, padding: '2px 9px', fontSize: 12, fontWeight: 700,
                 }}>
-                  DECOMMISSIONED
+                  {t('printerDetail.decommissionedBadge')}
                 </span>
               )}
             </>
@@ -343,7 +346,7 @@ export default function PrinterDetail() {
           <form onSubmit={submitEditDetails} style={{ marginTop: 4 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px' }}>
               <label style={detailLabelStyle}>
-                IP Address
+                {t('printerDetail.ipAddress')}
                 <input
                   autoFocus
                   value={detailsDraft.ip}
@@ -354,7 +357,7 @@ export default function PrinterDetail() {
               </label>
               {!NO_API_KEY_TYPES.has(printer.type) && (
                 <label style={detailLabelStyle}>
-                  API Key
+                  {t('printerDetail.apiKey')}
                   <input
                     value={detailsDraft.api_key}
                     onChange={e => setDetailsDraft(d => ({ ...d, api_key: e.target.value }))}
@@ -364,12 +367,12 @@ export default function PrinterDetail() {
                 </label>
               )}
               <label style={detailLabelStyle}>
-                Group
+                {t('printerDetail.group')}
                 <input
                   value={detailsDraft.group_name}
                   onChange={e => setDetailsDraft(d => ({ ...d, group_name: e.target.value }))}
                   disabled={savingDetails}
-                  placeholder="optional"
+                  placeholder={t('printerDetail.optionalPlaceholder')}
                   list="printer-detail-group-options"
                   style={detailInputStyle}
                 />
@@ -378,17 +381,17 @@ export default function PrinterDetail() {
                 </datalist>
               </label>
               <label style={detailLabelStyle}>
-                Serial Number
+                {t('printerDetail.serialNumber')}
                 <input
                   value={detailsDraft.serial_number}
                   onChange={e => setDetailsDraft(d => ({ ...d, serial_number: e.target.value }))}
                   disabled={savingDetails}
-                  placeholder="optional"
+                  placeholder={t('printerDetail.optionalPlaceholder')}
                   style={detailInputStyle}
                 />
               </label>
               <label style={detailLabelStyle}>
-                Model
+                {t('printerDetail.model')}
                 <select
                   value={detailsDraft.model}
                   onChange={e => setDetailsDraft(d => ({ ...d, model: e.target.value }))}
@@ -401,26 +404,26 @@ export default function PrinterDetail() {
                 </select>
               </label>
               <label style={detailLabelStyle}>
-                Loaded Material
+                {t('printerDetail.loadedMaterial')}
                 <select
                   value={detailsDraft.loaded_material}
                   onChange={e => setDetailsDraft(d => ({ ...d, loaded_material: e.target.value, loaded_color: '' }))}
                   disabled={savingDetails}
                   style={{ ...detailInputStyle, cursor: 'pointer' }}
                 >
-                  <option value="">— none —</option>
-                  {filamentTypes.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
+                  <option value="">{t('common.noneOption')}</option>
+                  {filamentTypes.map(ft => <option key={ft.id} value={ft.name}>{ft.name}</option>)}
                 </select>
               </label>
               <label style={detailLabelStyle}>
-                Loaded Color
+                {t('printerDetail.loadedColor')}
                 <select
                   value={detailsDraft.loaded_color}
                   onChange={e => setDetailsDraft(d => ({ ...d, loaded_color: e.target.value }))}
                   disabled={savingDetails || !detailsDraft.loaded_material}
                   style={{ ...detailInputStyle, cursor: detailsDraft.loaded_material ? 'pointer' : 'not-allowed' }}
                 >
-                  <option value="">— none —</option>
+                  <option value="">{t('common.noneOption')}</option>
                   {filamentColors
                     .filter(c => c.type_name === detailsDraft.loaded_material)
                     .map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
@@ -442,7 +445,7 @@ export default function PrinterDetail() {
                   cursor: savingDetails || !detailsDraft.ip?.trim() ? 'not-allowed' : 'pointer',
                 }}
               >
-                {savingDetails ? 'Saving…' : 'Save'}
+                {savingDetails ? t('common.saving') : t('common.save')}
               </button>
               <button
                 type="button"
@@ -455,23 +458,23 @@ export default function PrinterDetail() {
                   cursor: savingDetails ? 'not-allowed' : 'pointer',
                 }}
               >
-                Cancel
+                {t('common.cancel')}
               </button>
             </div>
           </form>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap', fontSize: 13, color: '#64748b' }}>
-            <span>Model: <span style={{ color: '#94a3b8', fontFamily: 'monospace' }}>{printer.model}</span></span>
-            <span>IP: <span style={{ color: '#94a3b8', fontFamily: 'monospace' }}>{printer.ip}</span></span>
+            <span>{t('printerDetail.modelLabel')} <span style={{ color: '#94a3b8', fontFamily: 'monospace' }}>{printer.model}</span></span>
+            <span>{t('printerDetail.ipLabel')} <span style={{ color: '#94a3b8', fontFamily: 'monospace' }}>{printer.ip}</span></span>
             {printer.group_name && (
-              <span>Group: <span style={{ color: '#94a3b8' }}>{printer.group_name}</span></span>
+              <span>{t('printerDetail.groupLabel')} <span style={{ color: '#94a3b8' }}>{printer.group_name}</span></span>
             )}
             {printer.type && printer.type !== 'prusa' && (
-              <span>Connector: <span style={{ color: '#94a3b8' }}>{printer.type}</span></span>
+              <span>{t('printerDetail.connectorLabel')} <span style={{ color: '#94a3b8' }}>{printer.type}</span></span>
             )}
             {(printer.loaded_material || printer.loaded_color) && (
               <span>
-                Loaded:{' '}
+                {t('printerDetail.loadedLabel')}{' '}
                 <span style={{ color: '#7dd3fc' }}>
                   {[printer.loaded_material, printer.loaded_color].filter(Boolean).join(' · ')}
                 </span>
@@ -486,14 +489,14 @@ export default function PrinterDetail() {
                 cursor: 'pointer', letterSpacing: '0.04em', marginLeft: 'auto',
               }}
             >
-              Edit
+              {t('common.edit')}
             </button>
           </div>
         )}
 
         {printer.decommissioned_at && (
           <div style={{ marginTop: 8, fontSize: 12, color: '#ef4444' }}>
-            Decommissioned: {formatTimestamp(printer.decommissioned_at)}
+            {t('printerDetail.decommissionedAt', { date: formatTimestamp(printer.decommissioned_at) })}
           </div>
         )}
       </div>
@@ -506,10 +509,10 @@ export default function PrinterDetail() {
           display: 'flex', gap: 0, flexWrap: 'wrap',
         }}>
           {[
-            { label: 'Jobs Run',      value: stats.total_jobs.toLocaleString() },
-            { label: 'Parts Made',    value: stats.total_parts.toLocaleString() },
-            { label: 'Success Rate',  value: stats.success_rate != null ? `${stats.success_rate}%` : '—' },
-            { label: 'Print Hours',   value: formatHours(stats.total_print_ms) },
+            { label: t('printerDetail.statJobsRun'),     value: stats.total_jobs.toLocaleString() },
+            { label: t('printerDetail.statPartsMade'),   value: stats.total_parts.toLocaleString() },
+            { label: t('printerDetail.statSuccessRate'), value: stats.success_rate != null ? `${stats.success_rate}%` : '—' },
+            { label: t('printerDetail.statPrintHours'),  value: formatHours(stats.total_print_ms) },
           ].map(({ label, value }) => (
             <div key={label} style={{
               flex: '1 1 120px', padding: '4px 16px 4px 0', minWidth: 100,
@@ -526,12 +529,12 @@ export default function PrinterDetail() {
         background: '#131720', border: '1px solid #1e2433',
         borderRadius: 8, padding: '14px 18px', marginBottom: 24,
       }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', marginBottom: 8 }}>Add operator note</div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8', marginBottom: 8 }}>{t('printerDetail.addNoteTitle')}</div>
         <form onSubmit={submitNote} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
           <textarea
             value={note}
             onChange={e => setNote(e.target.value)}
-            placeholder="Describe an observation, inspection result, or any relevant note…"
+            placeholder={t('printerDetail.notePlaceholder')}
             rows={2}
             style={{
               flex: 1,
@@ -553,19 +556,19 @@ export default function PrinterDetail() {
               whiteSpace: 'nowrap',
             }}
           >
-            {saving ? 'Saving…' : 'Add Note'}
+            {saving ? t('common.saving') : t('printerDetail.addNoteButton')}
           </button>
         </form>
       </div>
 
       {/* Event timeline */}
       <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-        Event History ({events.length})
+        {t('printerDetail.eventHistory', { count: events.length })}
       </div>
 
       {events.length === 0 && (
         <p style={{ color: '#475569', fontSize: 14 }}>
-          No history yet — events are recorded automatically as this printer receives jobs, finishes prints, or changes status.
+          {t('printerDetail.noHistoryYet')}
         </p>
       )}
 
@@ -594,14 +597,18 @@ export default function PrinterDetail() {
       {jobHistory.total > 0 && (
         <div style={{ marginTop: 32 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Job History ({jobHistory.total.toLocaleString()})
+            {t('printerDetail.jobHistory', { count: jobHistory.total.toLocaleString() })}
           </div>
 
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
                 <tr style={{ color: '#475569', textAlign: 'left', borderBottom: '1px solid #1e2433' }}>
-                  {['Part', 'Project', 'File', 'Started', 'Duration', 'Parts', 'Status'].map(h => (
+                  {[
+                    t('printerDetail.colPart'), t('printerDetail.colProject'), t('printerDetail.colFile'),
+                    t('printerDetail.colStarted'), t('printerDetail.colDuration'), t('printerDetail.colParts'),
+                    t('printerDetail.colStatus'),
+                  ].map(h => (
                     <th key={h} style={{ padding: '6px 10px', fontWeight: 600, whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -642,9 +649,9 @@ export default function PrinterDetail() {
                   border: 'none', borderRadius: 5, padding: '8px 16px',
                   fontSize: 13, fontWeight: 600, cursor: jobPage === 1 ? 'not-allowed' : 'pointer',
                 }}
-              >← Prev</button>
+              >← {t('printerDetail.prev')}</button>
               <span style={{ fontSize: 13, color: '#64748b' }}>
-                Page {jobPage} of {jobHistory.total_pages}
+                {t('printerDetail.pageOf', { page: jobPage, total: jobHistory.total_pages })}
               </span>
               <button
                 onClick={() => setJobPage(p => Math.min(jobHistory.total_pages, p + 1))}
@@ -655,7 +662,7 @@ export default function PrinterDetail() {
                   border: 'none', borderRadius: 5, padding: '8px 16px',
                   fontSize: 13, fontWeight: 600, cursor: jobPage === jobHistory.total_pages ? 'not-allowed' : 'pointer',
                 }}
-              >Next →</button>
+              >{t('printerDetail.next')} →</button>
             </div>
           )}
         </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import PollTimer from '../components/PollTimer';
 
 const POLL_INTERVAL_MS = 15000;
@@ -17,19 +18,19 @@ const CELL_COLORS = {
 };
 
 const STAT_CARDS = [
-  { key: 'printing',    label: 'Printing',    color: '#3b82f6', accent: '#1e40af' },
-  { key: 'idle',        label: 'Idle',        color: '#6b7280', accent: '#374151' },
-  { key: 'awaiting',    label: 'Awaiting Sign-off', color: '#22c55e', accent: '#15803d', help: 'Finished prints waiting for an operator to confirm good/bad before the next job dispatches' },
-  { key: 'parts_today', label: 'Parts Today', color: '#a78bfa', accent: '#7c3aed' },
+  { key: 'printing',    labelKey: 'common.statusPrinting', color: '#3b82f6', accent: '#1e40af' },
+  { key: 'idle',        labelKey: 'common.statusIdle',     color: '#6b7280', accent: '#374151' },
+  { key: 'awaiting',    labelKey: 'dashboard.awaitingSignoff', color: '#22c55e', accent: '#15803d', helpKey: 'dashboard.awaitingSignoffHelp' },
+  { key: 'parts_today', labelKey: 'dashboard.partsToday', color: '#a78bfa', accent: '#7c3aed' },
 ];
 
 const LEGEND_ITEMS = [
-  { label: 'Printing', color: '#3b82f6' },
-  { label: 'Awaiting Sign-off', color: '#22c55e' },
-  { label: 'Idle',     color: '#4b5563' },
-  { label: 'Stopped',  color: '#fb923c' },
-  { label: 'Error',    color: '#ef4444' },
-  { label: 'Offline',  color: '#374151' },
+  { labelKey: 'common.statusPrinting',   color: '#3b82f6' },
+  { labelKey: 'dashboard.awaitingSignoff', color: '#22c55e' },
+  { labelKey: 'common.statusIdle',       color: '#4b5563' },
+  { labelKey: 'common.statusStopped',    color: '#fb923c' },
+  { labelKey: 'common.statusError',      color: '#ef4444' },
+  { labelKey: 'common.statusOffline',    color: '#374151' },
 ];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -82,6 +83,7 @@ function formatMaterial(grams) {
 const ROW_STATUSES = ['PRINTING', 'FINISHED', 'IDLE', 'ERROR', 'STOPPED', 'OFFLINE'];
 
 function RowSummary({ group }) {
+  const { t } = useTranslation();
   return (
     <div style={{ display: 'flex', gap: 6, flexShrink: 0, flexWrap: 'wrap' }}>
       {ROW_STATUSES.map(s => {
@@ -92,7 +94,7 @@ function RowSummary({ group }) {
         }).length;
         if (count === 0) return null;
         const c = CELL_COLORS[s] || CELL_COLORS.IDLE;
-        const label = s === 'FINISHED' ? 'AWAITING' : s;
+        const label = s === 'FINISHED' ? t('common.statusAwaitingShort') : s;
         return (
           <span key={s} style={{
             fontSize: 10, color: c.text, background: c.bg,
@@ -110,6 +112,7 @@ function RowSummary({ group }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [data,  setData]  = useState(null);
   const [clock, setClock] = useState(new Date());
   const [allModels, setAllModels] = useState([]);
@@ -154,7 +157,7 @@ export default function Dashboard() {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: '#475569', fontSize: 18,
       }}>
-        Loading…
+        {t('common.loading')}
       </div>
     );
   }
@@ -164,7 +167,7 @@ export default function Dashboard() {
   // Group printers by model for the fleet grid
   const modelOrder = allModels.map(m => m.model_id);
   const MODEL_LABELS = Object.fromEntries(allModels.map(m => [m.model_id, m.label]));
-  MODEL_LABELS.other = 'Other';
+  MODEL_LABELS.other = t('common.other');
   const grouped = modelOrder.reduce((acc, m) => {
     const g = printers.filter(p => p.model === m);
     if (g.length) acc[m] = g;
@@ -201,10 +204,10 @@ export default function Dashboard() {
           <div style={{ width: 4, height: 36, background: '#1d4ed8', borderRadius: 2, flexShrink: 0 }} />
           <div>
             <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: '0.05em', color: '#f1f5f9' }}>
-              PRINT FARM
+              {t('dashboard.brandTitle')}
             </div>
             <div style={{ fontSize: 11, color: '#475569', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 1 }}>
-              Command Center
+              {t('dashboard.commandCenter')}
             </div>
           </div>
         </div>
@@ -212,7 +215,7 @@ export default function Dashboard() {
         {/* Center: utilization */}
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <span style={{ fontSize: 13, color: '#475569', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-            Fleet Utilization
+            {t('dashboard.fleetUtilization')}
           </span>
           <span style={{ fontSize: 32, fontWeight: 800, color: '#3b82f6', fontVariantNumeric: 'tabular-nums' }}>
             {utilPct}%
@@ -235,14 +238,14 @@ export default function Dashboard() {
           <PollTimer lastPolled={lastPolled} intervalMs={POLL_INTERVAL_MS} size={28} />
           <button
             onClick={enterTV}
-            title="Enter fullscreen TV mode"
+            title={t('dashboard.enterTvMode')}
             style={{
               background: '#1e2433', color: '#64748b',
               border: '1px solid #2d3748', borderRadius: 6,
               padding: '6px 12px', fontSize: 12, cursor: 'pointer',
             }}
           >
-            ⛶ TV Mode
+            ⛶ {t('dashboard.tvMode')}
           </button>
         </div>
       </div>
@@ -251,8 +254,8 @@ export default function Dashboard() {
 
         {/* ── STAT CARDS ──────────────────────────────────────────────────── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-          {STAT_CARDS.map(({ key, label, color, accent, help }) => (
-            <div key={key} title={help} style={{
+          {STAT_CARDS.map(({ key, labelKey, color, accent, helpKey }) => (
+            <div key={key} title={helpKey ? t(helpKey) : undefined} style={{
               background: '#1e2433', borderRadius: 8,
               padding: '16px 20px',
               display: 'flex', alignItems: 'center', gap: 18,
@@ -268,7 +271,7 @@ export default function Dashboard() {
                 fontSize: 11, color: '#475569',
                 textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700,
               }}>
-                {label}
+                {t(labelKey)}
               </div>
             </div>
           ))}
@@ -281,7 +284,7 @@ export default function Dashboard() {
             textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 700,
             marginBottom: 14,
           }}>
-            Fleet Status
+            {t('dashboard.fleetStatus')}
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -334,10 +337,10 @@ export default function Dashboard() {
             display: 'flex', gap: 18, marginTop: 14,
             paddingTop: 12, borderTop: '1px solid #1e2433',
           }}>
-            {LEGEND_ITEMS.map(({ label, color }) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            {LEGEND_ITEMS.map(({ labelKey, color }) => (
+              <div key={labelKey} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
-                <span style={{ fontSize: 11, color: '#475569' }}>{label}</span>
+                <span style={{ fontSize: 11, color: '#475569' }}>{t(labelKey)}</span>
               </div>
             ))}
           </div>
@@ -350,12 +353,12 @@ export default function Dashboard() {
             textTransform: 'uppercase', letterSpacing: '0.15em', fontWeight: 700,
             marginBottom: 14,
           }}>
-            Active Projects
+            {t('dashboard.activeProjects')}
           </div>
 
           {active_projects.length === 0 ? (
             <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>
-              No active projects. Create one on the Projects page and set it Active to track production here.
+              {t('dashboard.noActiveProjects')}
             </p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -373,7 +376,7 @@ export default function Dashboard() {
                         borderRadius: 3, padding: '1px 7px',
                         fontSize: 10, fontWeight: 700,
                       }}>
-                        ACTIVE
+                        {t('dashboard.activeBadge')}
                       </span>
                     </div>
 
@@ -412,7 +415,7 @@ export default function Dashboard() {
                                     borderRadius: 3, padding: '1px 5px',
                                     fontSize: 9, fontWeight: 700,
                                   }}>
-                                    DONE
+                                    {t('dashboard.partDoneBadge')}
                                   </span>
                                 )}
                               </div>
@@ -453,7 +456,7 @@ export default function Dashboard() {
                         borderTop: '1px solid #1a2030', marginTop: 10, paddingTop: 8,
                         display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, flexWrap: 'wrap',
                       }}>
-                        <span style={{ fontWeight: 700, color: '#cbd5e1' }}>So far</span>
+                        <span style={{ fontWeight: 700, color: '#cbd5e1' }}>{t('dashboard.soFar')}</span>
                         <span style={{ color: '#374151' }}>·</span>
                         {proj.elapsed_secs > 0 && (
                           <span style={{ color: '#94a3b8' }}>{formatDuration(proj.elapsed_secs)}</span>
