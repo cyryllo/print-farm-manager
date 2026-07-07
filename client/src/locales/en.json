@@ -343,6 +343,7 @@
     "partNameRequiredLabel": "Part name *",
     "partNameExample": "e.g. Left bracket",
     "targetQtyLabel": "Target qty *",
+    "perPlate": "per plate:",
     "addPartButton": "Add Part"
   },
   "jobs": {
