@@ -1589,7 +1589,7 @@ export default function Projects() {
                   <span>
                     {part.completed_qty}
                     {activeQty > 0 && (
-                      <span style={{ color: '#3b82f6', marginLeft: 4 }}>+{activeQty} printing</span>
+                      <span style={{ color: '#3b82f6', marginLeft: 4 }}>{t('projects.printingCount', { count: activeQty })}</span>
                     )}
                     {' / '}
                     {part.target_qty}

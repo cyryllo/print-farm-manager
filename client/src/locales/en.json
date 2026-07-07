@@ -344,6 +344,8 @@
     "partNameExample": "e.g. Left bracket",
     "targetQtyLabel": "Target qty *",
     "perPlate": "per plate:",
+    "printingCount_one": "+{{count}} printing",
+    "printingCount_other": "+{{count}} printing",
     "addPartButton": "Add Part"
   },
   "jobs": {
