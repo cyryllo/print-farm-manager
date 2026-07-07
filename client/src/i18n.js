@@ -17,6 +17,9 @@ i18n
       en: { translation: en },
     },
     fallbackLng: 'en',
+    // Collapse region codes (e.g. en-US) to their base code (en) for detection/resolution,
+    // so i18n.language always matches a SUPPORTED_LANGUAGES entry.
+    load: 'languageOnly',
     interpolation: {
       escapeValue: false, // React already escapes output.
     },

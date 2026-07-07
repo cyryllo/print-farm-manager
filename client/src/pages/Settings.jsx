@@ -7,7 +7,9 @@ import { SUPPORTED_LANGUAGES } from '../i18n';
 function LanguageSwitcher() {
   const { t, i18n } = useTranslation();
   return (
-    <select value={i18n.language} onChange={(e) => i18n.changeLanguage(e.target.value)} style={inputStyle}>
+    // Resolve to the base code (en-US -> en) so the control matches a SUPPORTED_LANGUAGES
+    // option even if the browser detector reports a region code.
+    <select value={(i18n.resolvedLanguage || i18n.language || 'en').split('-')[0]} onChange={(e) => i18n.changeLanguage(e.target.value)} style={inputStyle}>
       {SUPPORTED_LANGUAGES.map((l) => (
         <option key={l.code} value={l.code}>{l.label}</option>
       ))}
