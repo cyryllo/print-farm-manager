@@ -95,6 +95,18 @@ CLAUDE.md still described the Phase 1 scaffold ("no migration system", "do not i
 - `.claude/skills/add-connector/SKILL.md`: end-to-end printer driver scaffold: contract, six registration touchpoints, mocked test minimums, honest hardware-validation reporting.
 - `.claude/skills/pr-review/SKILL.md`: community PR review process (adjacent-code audit, part-count scrutiny, driver contract checks, severity-tagged findings).
 - `.gitignore`: `.claude/` narrowed to `.claude/*` with `!.claude/skills/` so skills ship with the repo.
+## 2026-07-07 - i18n fixes: base-code language switcher, translated Dashboard status text
+
+PR review on the i18next rollout found two issues:
+
+- **[P2] Settings language `<select>` could render blank.** `i18next-browser-languagedetector` can report a region code like `en-US` from the browser, but `SUPPORTED_LANGUAGES` only lists base codes (`en`). The `<select>` was controlled by `i18n.language`, which then matched no `<option>` and rendered blank/out of sync on a stock US-English browser even though translations still resolved correctly. Fixed both ends: `i18n.js` now sets `load: 'languageOnly'` so i18next itself collapses region codes to base codes for detection/resolution, and the `<select>` in `Settings.jsx` binds to `(i18n.resolvedLanguage || i18n.language || 'en').split('-')[0]` as a second line of defense.
+- **[P2] Dashboard TV view showed raw internal status codes.** The per-model row summary badges and the printer-cell tooltip in `Dashboard.jsx` rendered `printer.status` / `ROW_STATUSES` values (`PRINTING`, `STOPPED`, `OFFLINE`, …) straight to the screen instead of going through the same `common.status*` translation keys the Fleet page and dashboard legend already use. Added a `STATUS_LABEL_KEYS` map mirroring Fleet.jsx's inlined `STATUS_COLORS` → `labelKey` convention (no shared export exists between the two pages, so it's mirrored rather than imported) and a `statusLabel(t, status)` helper; both render sites now call it. The special "awaiting sign-off" case (held FINISHED/IDLE printers) is unchanged — it already used `common.statusAwaitingShort`. No new translation keys were needed; every status code that reaches the Dashboard already had a `common.status*` entry.
+
+### Changes
+- `client/src/i18n.js`: added `load: 'languageOnly'` to the i18next config.
+- `client/src/pages/Settings.jsx`: language switcher `<select>` value now resolves to the base language code.
+- `client/src/pages/Dashboard.jsx`: added `STATUS_LABEL_KEYS`/`statusLabel()`; row summary badges and the printer-cell tooltip now render translated status text via existing `common.status*` keys.
+- `docs/TRANSLATING.md`, `docs/web-app.md`: documented the base-code normalization and the Dashboard's reuse of `common.status*` keys.
 
 ---
 

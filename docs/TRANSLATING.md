@@ -17,6 +17,10 @@ that every other language file must match.
    - Add an entry to `SUPPORTED_LANGUAGES`: `{ code: 'pl', label: 'Polski' }`
 4. That's it — the language switcher in Settings picks it up automatically.
 
+Note: `i18n.js` sets `load: 'languageOnly'`, so a detected region code (e.g. a browser reporting
+`en-US`) is collapsed to its base code (`en`) before resolution. Register languages with their
+base ISO 639-1 code only — region variants are never distinguished.
+
 ## Key convention
 
 Keys are `namespace.key`, kept flat (no more than two segments). Where a page has sub-sections,

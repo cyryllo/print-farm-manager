@@ -17,6 +17,25 @@ const CELL_COLORS = {
   OFFLINE:   { bg: '#0d1117', text: '#1f2937', border: '#161b22' },
 };
 
+// Mirrors Fleet.jsx's STATUS_COLORS labelKey mapping — same canonical status codes,
+// same common.status* keys, so row summaries/tooltips read the same as the Fleet page.
+const STATUS_LABEL_KEYS = {
+  PRINTING:   'common.statusPrinting',
+  UPLOADING:  'common.statusUploading',
+  IDLE:       'common.statusIdle',
+  READY:      'common.statusReady',
+  FINISHED:   'common.statusFinished',
+  STOPPED:    'common.statusStopped',
+  PAUSED:     'common.statusPaused',
+  ATTENTION:  'common.statusAttention',
+  ERROR:      'common.statusError',
+  OFFLINE:    'common.statusOffline',
+};
+
+function statusLabel(t, status) {
+  return t(STATUS_LABEL_KEYS[status] || 'common.statusUnknown');
+}
+
 const STAT_CARDS = [
   { key: 'printing',    labelKey: 'common.statusPrinting', color: '#3b82f6', accent: '#1e40af' },
   { key: 'idle',        labelKey: 'common.statusIdle',     color: '#6b7280', accent: '#374151' },
@@ -94,7 +113,7 @@ function RowSummary({ group }) {
         }).length;
         if (count === 0) return null;
         const c = CELL_COLORS[s] || CELL_COLORS.IDLE;
-        const label = s === 'FINISHED' ? t('common.statusAwaitingShort') : s;
+        const label = s === 'FINISHED' ? t('common.statusAwaitingShort') : statusLabel(t, s);
         return (
           <span key={s} style={{
             fontSize: 10, color: c.text, background: c.bg,
@@ -306,7 +325,7 @@ export default function Dashboard() {
                     return (
                       <div
                         key={printer.id}
-                        title={`${printer.name} — ${printer.status}`}
+                        title={`${printer.name} — ${statusLabel(t, printer.status)}`}
                         style={{
                           width: 54, height: 44, borderRadius: 6,
                           background: c.bg, border: `1px solid ${c.border}`,

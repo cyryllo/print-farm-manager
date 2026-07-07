@@ -68,7 +68,7 @@ TV-optimized command center intended to be shown full-screen on a large monitor 
 |---|---|
 | Header | Branding, fleet utilization % (printing / total), live HH:MM:SS clock and date |
 | Hero stat cards | Printing, Idle, Awaiting sign-off, Parts Today (rolling 24h) — large tabular numerals |
-| Fleet grid | All active printers as color-coded 54×44px cells, grouped by model row with per-row status summary badges and a color legend |
+| Fleet grid | All active printers as color-coded 54×44px cells, grouped by model row with per-row status summary badges and a color legend. Badge text and the per-cell hover tooltip are translated via `common.status*` keys (`STATUS_LABEL_KEYS`/`statusLabel()` in `Dashboard.jsx`, mirroring Fleet.jsx's `STATUS_COLORS.labelKey` convention) rather than the raw internal status code. |
 | Active Projects | All active projects with **all parts** listed — per-part 3-segment progress bars (green = completed, blue = printing, dark = remaining), completion counts with `+N printing` annotation, and DONE badges on closed parts. No truncation. |
 | Needs Attention | Every printer requiring a human, sorted by priority: AWAITING → ERROR → STOPPED → PAUSED → OFFLINE, then longest-waiting first. Each row shows a reason badge, printer name, and wait time derived from `last_event_at`. Empty state renders a green "✓ All clear" badge. |
 
