@@ -216,7 +216,10 @@
     "eventJobFinished": "Job Finished",
     "eventJobFailed": "Job Failed",
     "eventNote": "Note",
-    "eventInfoChanged": "Info Updated"
+    "eventInfoChanged": "Info Updated",
+    "durationMinutes": "{{m}}m",
+    "durationHoursMinutes": "{{h}}h {{m}}m",
+    "hoursShort": "{{h}}h"
   },
   "projects": {
     "statusDraft": "Draft",

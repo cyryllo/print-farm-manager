@@ -2,27 +2,27 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-function formatTimestamp(ms) {
+function formatTimestamp(ms, language) {
   if (!ms) return '—';
-  return new Date(ms).toLocaleString(undefined, {
+  return new Date(ms).toLocaleString(language, {
     year: 'numeric', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
   });
 }
 
-function formatDuration(ms) {
+function formatDuration(ms, t) {
   if (!ms || ms <= 0) return '—';
   const totalMin = Math.round(ms / 60000);
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
-  if (h === 0) return `${m}m`;
-  return `${h}h ${m}m`;
+  if (h === 0) return t('printerDetail.durationMinutes', { m });
+  return t('printerDetail.durationHoursMinutes', { h, m });
 }
 
-function formatHours(ms) {
-  if (!ms || ms <= 0) return '0h';
+function formatHours(ms, t) {
+  if (!ms || ms <= 0) return t('printerDetail.hoursShort', { h: 0 });
   const h = ms / 3600000;
-  return h >= 100 ? `${Math.round(h)}h` : `${h.toFixed(1)}h`;
+  return t('printerDetail.hoursShort', { h: h >= 100 ? Math.round(h) : h.toFixed(1) });
 }
 
 const EVENT_META = {
@@ -50,13 +50,25 @@ function EventBadge({ type }) {
 }
 
 const STATUS_COLORS = {
-  IDLE:     { bg: '#1e3a5f', text: '#93c5fd' },
-  PRINTING: { bg: '#14532d', text: '#86efac' },
-  FINISHED: { bg: '#14532d', text: '#86efac' },
-  PAUSED:   { bg: '#78350f', text: '#fcd34d' },
-  ERROR:    { bg: '#7f1d1d', text: '#fca5a5' },
-  OFFLINE:  { bg: '#1e2433', text: '#475569' },
-  UNKNOWN:  { bg: '#1e2433', text: '#475569' },
+  IDLE:     { bg: '#1e3a5f', text: '#93c5fd', labelKey: 'common.statusIdle' },
+  PRINTING: { bg: '#14532d', text: '#86efac', labelKey: 'common.statusPrinting' },
+  FINISHED: { bg: '#14532d', text: '#86efac', labelKey: 'common.statusFinished' },
+  PAUSED:   { bg: '#78350f', text: '#fcd34d', labelKey: 'common.statusPaused' },
+  ERROR:    { bg: '#7f1d1d', text: '#fca5a5', labelKey: 'common.statusError' },
+  OFFLINE:  { bg: '#1e2433', text: '#475569', labelKey: 'common.statusOffline' },
+  UNKNOWN:  { bg: '#1e2433', text: '#475569', labelKey: 'common.statusUnknown' },
+};
+
+// Mirrors Jobs.jsx's JOB_STATUS labelKey mapping — same job status codes, same keys.
+// 'done' is a legacy alias for 'finished' (see DONE_STATUSES in server/routes/dashboard.js).
+const JOB_STATUS_LABEL_KEYS = {
+  queued:    'jobs.statusQueued',
+  uploading: 'common.statusUploading',
+  printing:  'common.statusPrinting',
+  finished:  'common.statusFinished',
+  done:      'common.statusFinished',
+  failed:    'jobs.statusFailed',
+  cancelled: 'jobs.statusCancelled',
 };
 
 const detailLabelStyle = {
@@ -74,7 +86,7 @@ const detailInputStyle = {
 };
 
 export default function PrinterDetail() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -323,7 +335,7 @@ export default function PrinterDetail() {
                   background: sc.bg, color: sc.text,
                   borderRadius: 4, padding: '2px 9px', fontSize: 12, fontWeight: 700,
                 }}>
-                  {printer.status}
+                  {t(sc.labelKey)}
                 </span>
               ) : (
                 <span style={{
@@ -496,7 +508,7 @@ export default function PrinterDetail() {
 
         {printer.decommissioned_at && (
           <div style={{ marginTop: 8, fontSize: 12, color: '#ef4444' }}>
-            {t('printerDetail.decommissionedAt', { date: formatTimestamp(printer.decommissioned_at) })}
+            {t('printerDetail.decommissionedAt', { date: formatTimestamp(printer.decommissioned_at, i18n.language) })}
           </div>
         )}
       </div>
@@ -512,7 +524,7 @@ export default function PrinterDetail() {
             { label: t('printerDetail.statJobsRun'),     value: stats.total_jobs.toLocaleString() },
             { label: t('printerDetail.statPartsMade'),   value: stats.total_parts.toLocaleString() },
             { label: t('printerDetail.statSuccessRate'), value: stats.success_rate != null ? `${stats.success_rate}%` : '—' },
-            { label: t('printerDetail.statPrintHours'),  value: formatHours(stats.total_print_ms) },
+            { label: t('printerDetail.statPrintHours'),  value: formatHours(stats.total_print_ms, t) },
           ].map(({ label, value }) => (
             <div key={label} style={{
               flex: '1 1 120px', padding: '4px 16px 4px 0', minWidth: 100,
@@ -588,7 +600,7 @@ export default function PrinterDetail() {
                   {ev.note}
                 </div>
               )}
-              <div style={{ fontSize: 11, color: '#475569' }}>{formatTimestamp(ev.created_at)}</div>
+              <div style={{ fontSize: 11, color: '#475569' }}>{formatTimestamp(ev.created_at, i18n.language)}</div>
             </div>
           </div>
         ))}
@@ -615,7 +627,7 @@ export default function PrinterDetail() {
               </thead>
               <tbody>
                 {jobHistory.jobs.map(job => {
-                  const statusColor = job.status === 'finished' ? '#86efac'
+                  const statusColor = job.status === 'finished' || job.status === 'done' ? '#86efac'
                     : job.status === 'failed'   ? '#fca5a5'
                     : job.status === 'cancelled' ? '#475569'
                     : '#fcd34d';
@@ -624,11 +636,11 @@ export default function PrinterDetail() {
                       <td style={{ padding: '7px 10px', color: '#cbd5e1', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.part_name ?? '—'}</td>
                       <td style={{ padding: '7px 10px', color: '#94a3b8', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.project_name ?? '—'}</td>
                       <td style={{ padding: '7px 10px', color: '#64748b', fontFamily: 'monospace', fontSize: 11, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.gcode_filename ?? '—'}</td>
-                      <td style={{ padding: '7px 10px', color: '#64748b', whiteSpace: 'nowrap' }}>{formatTimestamp(job.started_at)}</td>
-                      <td style={{ padding: '7px 10px', color: '#94a3b8', whiteSpace: 'nowrap' }}>{formatDuration(job.duration_ms)}</td>
+                      <td style={{ padding: '7px 10px', color: '#64748b', whiteSpace: 'nowrap' }}>{formatTimestamp(job.started_at, i18n.language)}</td>
+                      <td style={{ padding: '7px 10px', color: '#94a3b8', whiteSpace: 'nowrap' }}>{formatDuration(job.duration_ms, t)}</td>
                       <td style={{ padding: '7px 10px', color: '#94a3b8', textAlign: 'center' }}>{job.parts_per_plate}</td>
                       <td style={{ padding: '7px 10px', whiteSpace: 'nowrap' }}>
-                        <span style={{ color: statusColor, fontWeight: 600, fontSize: 11, textTransform: 'uppercase' }}>{job.status}</span>
+                        <span style={{ color: statusColor, fontWeight: 600, fontSize: 11, textTransform: 'uppercase' }}>{t(JOB_STATUS_LABEL_KEYS[job.status] || 'common.statusUnknown')}</span>
                       </td>
                     </tr>
                   );

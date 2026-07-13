@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 const STATUS_COLORS = {
-  IDLE:     { bg: '#1e3a5f', text: '#93c5fd' },
-  PRINTING: { bg: '#1e3a5f', text: '#60a5fa' },
-  FINISHED: { bg: '#14532d', text: '#86efac' },
-  PAUSED:   { bg: '#78350f', text: '#fcd34d' },
-  ERROR:    { bg: '#7f1d1d', text: '#fca5a5' },
-  OFFLINE:  { bg: '#1e2433', text: '#475569' },
-  UNKNOWN:  { bg: '#1e2433', text: '#475569' },
+  IDLE:     { bg: '#1e3a5f', text: '#93c5fd', labelKey: 'common.statusIdle' },
+  PRINTING: { bg: '#1e3a5f', text: '#60a5fa', labelKey: 'common.statusPrinting' },
+  FINISHED: { bg: '#14532d', text: '#86efac', labelKey: 'common.statusFinished' },
+  PAUSED:   { bg: '#78350f', text: '#fcd34d', labelKey: 'common.statusPaused' },
+  ERROR:    { bg: '#7f1d1d', text: '#fca5a5', labelKey: 'common.statusError' },
+  OFFLINE:  { bg: '#1e2433', text: '#475569', labelKey: 'common.statusOffline' },
+  UNKNOWN:  { bg: '#1e2433', text: '#475569', labelKey: 'common.statusUnknown' },
 };
 
 const SUMMARY_PILLS = [
@@ -24,7 +24,7 @@ const SUMMARY_PILLS = [
 const COLLAPSED_KEY = 'printers.collapsedGroups';
 const SHOW_DECOM_KEY = 'printers.showDecommissioned';
 
-function statusBadge(status) {
+function statusBadge(status, t) {
   const c = STATUS_COLORS[status] || STATUS_COLORS.UNKNOWN;
   return (
     <span style={{
@@ -33,7 +33,7 @@ function statusBadge(status) {
       fontSize: 11, fontWeight: 700,
       letterSpacing: '0.03em',
     }}>
-      {status}
+      {t(c.labelKey)}
     </span>
   );
 }
@@ -566,7 +566,7 @@ function GroupSection({ group, open, onToggle, onClickPrinter, dimmed, hideEmpty
               <span style={{ fontSize: 12, color: '#475569', fontFamily: 'monospace' }}>{printer.ip}</span>
               <span>{dimmed
                 ? <span style={{ fontSize: 11, color: '#475569' }}>{t('printers.offlineTag')}</span>
-                : statusBadge(printer.status)
+                : statusBadge(printer.status, t)
               }</span>
             </div>
           ))}
