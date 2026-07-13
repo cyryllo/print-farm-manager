@@ -91,6 +91,9 @@ const detailInputStyle = {
 
 export default function PrinterDetail() {
   const { t, i18n } = useTranslation();
+  // resolvedLanguage (not language) so date/number formatting matches whatever language
+  // is actually rendered, not a detected-but-unregistered browser locale (see i18n.js).
+  const language = i18n.resolvedLanguage || i18n.language || 'en';
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -512,7 +515,7 @@ export default function PrinterDetail() {
 
         {printer.decommissioned_at && (
           <div style={{ marginTop: 8, fontSize: 12, color: '#ef4444' }}>
-            {t('printerDetail.decommissionedAt', { date: formatTimestamp(printer.decommissioned_at, i18n.language) })}
+            {t('printerDetail.decommissionedAt', { date: formatTimestamp(printer.decommissioned_at, language) })}
           </div>
         )}
       </div>
@@ -525,8 +528,8 @@ export default function PrinterDetail() {
           display: 'flex', gap: 0, flexWrap: 'wrap',
         }}>
           {[
-            { label: t('printerDetail.statJobsRun'),     value: stats.total_jobs.toLocaleString(i18n.language) },
-            { label: t('printerDetail.statPartsMade'),   value: stats.total_parts.toLocaleString(i18n.language) },
+            { label: t('printerDetail.statJobsRun'),     value: stats.total_jobs.toLocaleString(language) },
+            { label: t('printerDetail.statPartsMade'),   value: stats.total_parts.toLocaleString(language) },
             { label: t('printerDetail.statSuccessRate'), value: stats.success_rate != null ? `${stats.success_rate}%` : '-' },
             { label: t('printerDetail.statPrintHours'),  value: formatHours(stats.total_print_ms, t) },
           ].map(({ label, value }) => (
@@ -604,7 +607,7 @@ export default function PrinterDetail() {
                   {ev.note}
                 </div>
               )}
-              <div style={{ fontSize: 11, color: '#475569' }}>{formatTimestamp(ev.created_at, i18n.language)}</div>
+              <div style={{ fontSize: 11, color: '#475569' }}>{formatTimestamp(ev.created_at, language)}</div>
             </div>
           </div>
         ))}
@@ -613,7 +616,7 @@ export default function PrinterDetail() {
       {jobHistory.total > 0 && (
         <div style={{ marginTop: 32 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            {t('printerDetail.jobHistory', { count: jobHistory.total.toLocaleString(i18n.language) })}
+            {t('printerDetail.jobHistory', { count: jobHistory.total.toLocaleString(language) })}
           </div>
 
           <div style={{ overflowX: 'auto' }}>
@@ -640,7 +643,7 @@ export default function PrinterDetail() {
                       <td style={{ padding: '7px 10px', color: '#cbd5e1', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.part_name ?? '—'}</td>
                       <td style={{ padding: '7px 10px', color: '#94a3b8', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.project_name ?? '—'}</td>
                       <td style={{ padding: '7px 10px', color: '#64748b', fontFamily: 'monospace', fontSize: 11, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.gcode_filename ?? '—'}</td>
-                      <td style={{ padding: '7px 10px', color: '#64748b', whiteSpace: 'nowrap' }}>{formatTimestamp(job.started_at, i18n.language)}</td>
+                      <td style={{ padding: '7px 10px', color: '#64748b', whiteSpace: 'nowrap' }}>{formatTimestamp(job.started_at, language)}</td>
                       <td style={{ padding: '7px 10px', color: '#94a3b8', whiteSpace: 'nowrap' }}>{formatDuration(job.duration_ms, t)}</td>
                       <td style={{ padding: '7px 10px', color: '#94a3b8', textAlign: 'center' }}>{job.parts_per_plate}</td>
                       <td style={{ padding: '7px 10px', whiteSpace: 'nowrap' }}>

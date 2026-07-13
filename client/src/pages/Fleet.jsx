@@ -58,6 +58,9 @@ function formatEta(t, secs, language) {
 
 function PrinterCard({ printer, selected, onToggleSelect, onSetReady, onBadPrint, onUploadFailed, onDecommission, onLinkJob, onOpenDetail }) {
   const { t, i18n } = useTranslation();
+  // resolvedLanguage (not language) so the ETA time matches whatever language is actually
+  // rendered, not a detected-but-unregistered browser locale (see i18n.js).
+  const language = i18n.resolvedLanguage || i18n.language || 'en';
   const shownStatus = displayStatus(printer);
   const style = statusStyle(shownStatus);
   const isUploading = shownStatus === 'UPLOADING';
@@ -105,7 +108,7 @@ function PrinterCard({ printer, selected, onToggleSelect, onSetReady, onBadPrint
   const isPrinting = printer.status === 'PRINTING';
   const pct = isPrinting && printer.job_progress != null ? Math.round(printer.job_progress) : null;
   const timeLeft = isPrinting ? formatTimeRemaining(t, printer.job_time_remaining) : null;
-  const eta      = isPrinting ? formatEta(t, printer.job_time_remaining, i18n.language) : null;
+  const eta      = isPrinting ? formatEta(t, printer.job_time_remaining, language) : null;
 
   function cardBorder() {
     if (needsOfflineConfirmation || needsUploadConfirmation) return '#92400e';

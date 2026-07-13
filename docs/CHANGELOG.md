@@ -2,6 +2,29 @@
 
 ---
 
+## 2026-07-13: i18n locale formatters: use resolvedLanguage, not the raw detected language
+
+Manual testing surfaced a real bug in the locale-aware formatting just added: every formatter
+passed `i18n.language` to `toLocaleString`/`toLocaleDateString`/`toLocaleTimeString`. That property
+reflects whatever `i18next-browser-languagedetector` detected (from `localStorage`, then the
+browser's own language), even when no translation resource exists for it. On a browser set to
+Polish, with only `en` registered in `SUPPORTED_LANGUAGES`, `t()` correctly falls back to English
+text (via `fallbackLng`), but `i18n.language` still reported `pl`, so `Intl` happily formatted
+dates and numbers in Polish (native browser behavior, independent of i18next's own fallback) while
+every label around them stayed in English. The Settings language `<select>` already had the fix
+for this exact class of bug: `i18n.resolvedLanguage`, the language whose resources are actually
+being rendered after fallback is applied. Replaced every `i18n.language` passed to a formatter
+with `i18n.resolvedLanguage || i18n.language || 'en'` across the pages touched by the prior entry.
+
+Verified against a browser context forced to `pl-PL` locale with only `en` registered: the
+Dashboard clock date now reads "Mon, Jul 13, 2026" instead of the Polish "pon., 13 lip 2026" seen
+before the fix, with no other change in behavior.
+
+### Changes
+- `client/src/pages/Dashboard.jsx`, `client/src/pages/Jobs.jsx`, `client/src/pages/Fleet.jsx`, `client/src/pages/Decommissioned.jsx`, `client/src/pages/Settings.jsx`, `client/src/pages/PrinterDetail.jsx`: derive `language = i18n.resolvedLanguage || i18n.language || 'en'` once per component and pass it to every formatter, instead of `i18n.language` directly.
+
+---
+
 ## 2026-07-13: i18n PR follow-up review: missing states, locale-aware formatting everywhere, dash cleanup
 
 A second review round on the i18n PR (#19) found seven issues, split between genuine gaps this

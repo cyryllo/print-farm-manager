@@ -59,6 +59,9 @@ const selectSx = {
 
 export default function Jobs() {
   const { t, i18n } = useTranslation();
+  // resolvedLanguage (not language) so date formatting matches whatever language is
+  // actually rendered, not a detected-but-unregistered browser locale (see i18n.js).
+  const language = i18n.resolvedLanguage || i18n.language || 'en';
   const [confirm, confirmModal]   = useConfirm();
   const [jobs, setJobs]           = useState([]);
   const [loading, setLoading]     = useState(true);
@@ -190,7 +193,7 @@ export default function Jobs() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#64748b', fontSize: 12 }}>
                   <span>
-                    {formatTime(job.started_at, i18n.language)}
+                    {formatTime(job.started_at, language)}
                     {job.started_at && <> · {formatDuration(job.started_at, job.finished_at || null, t)}</>}
                   </span>
                   {job.status === 'queued' && (
@@ -254,7 +257,7 @@ export default function Jobs() {
                       </span>
                     </td>
                     <td style={{ padding: '8px 10px', color: '#64748b', whiteSpace: 'nowrap' }}>
-                      {formatTime(job.started_at, i18n.language)}
+                      {formatTime(job.started_at, language)}
                     </td>
                     <td style={{ padding: '8px 10px', color: '#64748b' }}>
                       {job.started_at

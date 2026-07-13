@@ -132,6 +132,9 @@ function RowSummary({ group }) {
 
 export default function Dashboard() {
   const { t, i18n } = useTranslation();
+  // resolvedLanguage (not language) so date/number formatting matches whatever language
+  // is actually rendered, not a detected-but-unregistered browser locale (see i18n.js).
+  const language = i18n.resolvedLanguage || i18n.language || 'en';
   const [data,  setData]  = useState(null);
   const [clock, setClock] = useState(new Date());
   const [allModels, setAllModels] = useState([]);
@@ -248,10 +251,10 @@ export default function Dashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontFamily: 'monospace', fontSize: 28, fontWeight: 700, color: '#60a5fa', lineHeight: 1 }}>
-              {formatTime(clock, i18n.language)}
+              {formatTime(clock, language)}
             </div>
             <div style={{ fontSize: 12, color: '#475569', marginTop: 3 }}>
-              {formatDate(clock, i18n.language)}
+              {formatDate(clock, language)}
             </div>
           </div>
           <PollTimer lastPolled={lastPolled} intervalMs={POLL_INTERVAL_MS} size={28} />
@@ -284,7 +287,7 @@ export default function Dashboard() {
                 fontSize: 52, fontWeight: 800, color, lineHeight: 1,
                 fontVariantNumeric: 'tabular-nums',
               }}>
-                {(stats[key] ?? 0).toLocaleString(i18n.language)}
+                {(stats[key] ?? 0).toLocaleString(language)}
               </div>
               <div style={{
                 fontSize: 11, color: '#475569',
@@ -419,11 +422,11 @@ export default function Dashboard() {
                               <span style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 500 }}>{part.name}</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <span style={{ fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
-                                  <span style={{ color: '#e2e8f0' }}>{part.completed_qty.toLocaleString(i18n.language)}</span>
+                                  <span style={{ color: '#e2e8f0' }}>{part.completed_qty.toLocaleString(language)}</span>
                                   {activeQty > 0 && (
-                                    <span style={{ color: '#60a5fa' }}> +{activeQty.toLocaleString(i18n.language)}</span>
+                                    <span style={{ color: '#60a5fa' }}> +{activeQty.toLocaleString(language)}</span>
                                   )}
-                                  <span style={{ color: '#475569' }}>{' / '}{part.target_qty.toLocaleString(i18n.language)}</span>
+                                  <span style={{ color: '#475569' }}>{' / '}{part.target_qty.toLocaleString(language)}</span>
                                 </span>
                                 <span style={{ fontSize: 12, fontWeight: 700, color: part.status === 'closed' ? '#4ade80' : '#60a5fa', minWidth: 34, textAlign: 'right' }}>
                                   {pct}%

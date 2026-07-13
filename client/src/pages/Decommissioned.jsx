@@ -146,6 +146,9 @@ function DecomCard({
   onRecommission, onViewHistory,
 }) {
   const { t, i18n } = useTranslation();
+  // resolvedLanguage (not language) so the date matches whatever language is actually
+  // rendered, not a detected-but-unregistered browser locale (see i18n.js).
+  const language = i18n.resolvedLanguage || i18n.language || 'en';
   const note = printer.decommission_note || '';
   const textareaRef = useRef(null);
 
@@ -227,7 +230,7 @@ function DecomCard({
 
       {/* Decommission timestamp */}
       <div style={{ fontSize: 11, color: '#475569' }}>
-        {t('decommissioned.removedAt', { date: formatTimestamp(t, printer.decommissioned_at, i18n.language) })}
+        {t('decommissioned.removedAt', { date: formatTimestamp(t, printer.decommissioned_at, language) })}
       </div>
 
       {/* Note — view or edit */}
