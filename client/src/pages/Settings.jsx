@@ -58,7 +58,7 @@ const CREDENTIAL_HELP_KEYS = {
 };
 
 export default function Settings() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [showToast, toastEl] = useToast();
   const [confirm, confirmModal] = useConfirm();
   const [importing, setImporting] = useState(false);
@@ -393,7 +393,7 @@ export default function Settings() {
         .then(settingsData => {
           if (settingsData.dispatch_batch_size) setBatchSize(settingsData.dispatch_batch_size);
           setFarmName(settingsData.farm_name || '');
-          window.dispatchEvent(new CustomEvent('farmNameChanged', { detail: settingsData.farm_name || t('app.defaultFarmName') }));
+          window.dispatchEvent(new CustomEvent('farmNameChanged', { detail: settingsData.farm_name || '' }));
         })
         .catch(() => {});
     } catch (err) {
@@ -495,7 +495,7 @@ export default function Settings() {
               <div style={{ flex: 1 }}>
                 <div style={{ color: '#fca5a5', marginBottom: 4 }}>{alert.message}</div>
                 <div style={{ color: '#475569', fontSize: 12 }}>
-                  {new Date(alert.timestamp).toLocaleString()}
+                  {new Date(alert.timestamp).toLocaleString(i18n.language)}
                 </div>
               </div>
               <button

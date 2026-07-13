@@ -1,25 +1,25 @@
 # Translating Print Farm Manager
 
-The client is wired up with [react-i18next](https://react.i18next.com/). `src/locales/en.json`
-is the source of truth for every user-facing string in the UI — it also doubles as the schema
+The client is wired up with [react-i18next](https://react.i18next.com/). `client/src/locales/en.json`
+is the source of truth for every user-facing string in the UI: it also doubles as the schema
 that every other language file must match.
 
 ## Adding a new language
 
-1. Copy `src/locales/en.json` to `src/locales/<code>.json` (e.g. `pl.json` for Polish), using the
-   [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) language code.
-2. Translate the **values** only — never rename or remove a key, and keep any `{{placeholder}}`
+1. Copy `client/src/locales/en.json` to `client/src/locales/<code>.json` (e.g. `pl.json` for Polish),
+   using the [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) language code.
+2. Translate the **values** only (never rename or remove a key), and keep any `{{placeholder}}`
    tokens and `<0>...</0>` tags exactly as they appear (they're interpolation and rich-text markup
    substituted at render time).
-3. Register the language in `src/i18n.js`:
+3. Register the language in `client/src/i18n.js`:
    - Import the JSON file at the top: `import pl from './locales/pl.json';`
    - Add it to `resources`: `pl: { translation: pl },`
    - Add an entry to `SUPPORTED_LANGUAGES`: `{ code: 'pl', label: 'Polski' }`
-4. That's it — the language switcher in Settings picks it up automatically.
+4. That's it: the language switcher in Settings picks it up automatically.
 
-Note: `i18n.js` sets `load: 'languageOnly'`, so a detected region code (e.g. a browser reporting
-`en-US`) is collapsed to its base code (`en`) before resolution. Register languages with their
-base ISO 639-1 code only — region variants are never distinguished.
+Note: `client/src/i18n.js` sets `load: 'languageOnly'`, so a detected region code (e.g. a browser
+reporting `en-US`) is collapsed to its base code (`en`) before resolution. Register languages with
+their base ISO 639-1 code only, region variants are never distinguished.
 
 ## Key convention
 
@@ -32,7 +32,7 @@ status words) instead of duplicating them per namespace.
 
 - Code identifiers, API field names, and URLs.
 - Brand names (Prusa, Bambu, Elegoo, Klipper, OctoPrint, PayPal, …).
-- Backend error messages — the server only replies in English for now.
+- Backend error messages: the server only replies in English for now.
 
 ## Pluralization
 

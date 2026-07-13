@@ -3,13 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 const STATUS_COLORS = {
-  IDLE:     { bg: '#1e3a5f', text: '#93c5fd', labelKey: 'common.statusIdle' },
-  PRINTING: { bg: '#1e3a5f', text: '#60a5fa', labelKey: 'common.statusPrinting' },
-  FINISHED: { bg: '#14532d', text: '#86efac', labelKey: 'common.statusFinished' },
-  PAUSED:   { bg: '#78350f', text: '#fcd34d', labelKey: 'common.statusPaused' },
-  ERROR:    { bg: '#7f1d1d', text: '#fca5a5', labelKey: 'common.statusError' },
-  OFFLINE:  { bg: '#1e2433', text: '#475569', labelKey: 'common.statusOffline' },
-  UNKNOWN:  { bg: '#1e2433', text: '#475569', labelKey: 'common.statusUnknown' },
+  IDLE:      { bg: '#1e3a5f', text: '#93c5fd', labelKey: 'common.statusIdle' },
+  PRINTING:  { bg: '#1e3a5f', text: '#60a5fa', labelKey: 'common.statusPrinting' },
+  UPLOADING: { bg: '#3b2c69', text: '#a78bfa', labelKey: 'common.statusUploading' },
+  READY:     { bg: '#1e3a5f', text: '#93c5fd', labelKey: 'common.statusReady' },
+  FINISHED:  { bg: '#14532d', text: '#86efac', labelKey: 'common.statusFinished' },
+  STOPPED:   { bg: '#78350f', text: '#fcd34d', labelKey: 'common.statusStopped' },
+  PAUSED:    { bg: '#78350f', text: '#fcd34d', labelKey: 'common.statusPaused' },
+  ATTENTION: { bg: '#78350f', text: '#fcd34d', labelKey: 'common.statusAttention' },
+  ERROR:     { bg: '#7f1d1d', text: '#fca5a5', labelKey: 'common.statusError' },
+  OFFLINE:   { bg: '#1e2433', text: '#475569', labelKey: 'common.statusOffline' },
+  UNKNOWN:   { bg: '#1e2433', text: '#475569', labelKey: 'common.statusUnknown' },
 };
 
 const SUMMARY_PILLS = [
@@ -50,7 +54,7 @@ function summarize(group) {
 }
 
 export default function Printers() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [printers, setPrinters]     = useState([]);
   const [models, setModels]         = useState([]);
   const [loading, setLoading]       = useState(true);
@@ -224,7 +228,7 @@ export default function Printers() {
     };
 
     return { groups, totalShown, totalMatched, decomGroup };
-  }, [printers, models, search]);
+  }, [printers, models, search, t, i18n.language]);
 
   const isSearching = search.trim().length > 0;
   const isOpen = (g) => isSearching ? g.matched.length > 0 : !collapsed.has(g.key);

@@ -35,17 +35,20 @@ const navLinkStyle = ({ isActive }) => ({
 
 export default function App() {
   const { t } = useTranslation();
-  // Operator-configurable farm name (Settings → Farm Name)
-  const [farmName, setFarmName] = useState(t('app.defaultFarmName'));
+  // Operator-configurable farm name (Settings → Farm Name). Empty means "not set", so the
+  // translated default is derived at render time instead of being baked into state once,
+  // which would otherwise stick in the initial language after a language switch.
+  const [customFarmName, setCustomFarmName] = useState('');
+  const farmName = customFarmName || t('app.defaultFarmName');
   useEffect(() => {
     fetch('/api/settings')
       .then(r => r.json())
-      .then(data => { if (data.farm_name) setFarmName(data.farm_name); })
+      .then(data => { if (data.farm_name) setCustomFarmName(data.farm_name); })
       .catch(() => {});
 
     // Settings page dispatches this on save so the sidebar/topbar update live,
     // without needing a full page refresh.
-    const onFarmNameChanged = (e) => setFarmName(e.detail);
+    const onFarmNameChanged = (e) => setCustomFarmName(e.detail || '');
     window.addEventListener('farmNameChanged', onFarmNameChanged);
     return () => window.removeEventListener('farmNameChanged', onFarmNameChanged);
   }, []);

@@ -15,14 +15,14 @@ function formatDuration(ms, t) {
   const totalMin = Math.round(ms / 60000);
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;
-  if (h === 0) return t('printerDetail.durationMinutes', { m });
-  return t('printerDetail.durationHoursMinutes', { h, m });
+  if (h === 0) return t('common.durationMinutes', { m });
+  return t('common.durationHoursMinutes', { h, m });
 }
 
 function formatHours(ms, t) {
-  if (!ms || ms <= 0) return t('printerDetail.hoursShort', { h: 0 });
+  if (!ms || ms <= 0) return t('common.durationHours', { h: 0 });
   const h = ms / 3600000;
-  return t('printerDetail.hoursShort', { h: h >= 100 ? Math.round(h) : h.toFixed(1) });
+  return t('common.durationHours', { h: h >= 100 ? Math.round(h) : h.toFixed(1) });
 }
 
 const EVENT_META = {
@@ -50,16 +50,20 @@ function EventBadge({ type }) {
 }
 
 const STATUS_COLORS = {
-  IDLE:     { bg: '#1e3a5f', text: '#93c5fd', labelKey: 'common.statusIdle' },
-  PRINTING: { bg: '#14532d', text: '#86efac', labelKey: 'common.statusPrinting' },
-  FINISHED: { bg: '#14532d', text: '#86efac', labelKey: 'common.statusFinished' },
-  PAUSED:   { bg: '#78350f', text: '#fcd34d', labelKey: 'common.statusPaused' },
-  ERROR:    { bg: '#7f1d1d', text: '#fca5a5', labelKey: 'common.statusError' },
-  OFFLINE:  { bg: '#1e2433', text: '#475569', labelKey: 'common.statusOffline' },
-  UNKNOWN:  { bg: '#1e2433', text: '#475569', labelKey: 'common.statusUnknown' },
+  IDLE:      { bg: '#1e3a5f', text: '#93c5fd', labelKey: 'common.statusIdle' },
+  PRINTING:  { bg: '#14532d', text: '#86efac', labelKey: 'common.statusPrinting' },
+  UPLOADING: { bg: '#3b2c69', text: '#a78bfa', labelKey: 'common.statusUploading' },
+  READY:     { bg: '#1e3a5f', text: '#93c5fd', labelKey: 'common.statusReady' },
+  FINISHED:  { bg: '#14532d', text: '#86efac', labelKey: 'common.statusFinished' },
+  STOPPED:   { bg: '#78350f', text: '#fcd34d', labelKey: 'common.statusStopped' },
+  PAUSED:    { bg: '#78350f', text: '#fcd34d', labelKey: 'common.statusPaused' },
+  ATTENTION: { bg: '#78350f', text: '#fcd34d', labelKey: 'common.statusAttention' },
+  ERROR:     { bg: '#7f1d1d', text: '#fca5a5', labelKey: 'common.statusError' },
+  OFFLINE:   { bg: '#1e2433', text: '#475569', labelKey: 'common.statusOffline' },
+  UNKNOWN:   { bg: '#1e2433', text: '#475569', labelKey: 'common.statusUnknown' },
 };
 
-// Mirrors Jobs.jsx's JOB_STATUS labelKey mapping — same job status codes, same keys.
+// Mirrors Jobs.jsx's JOB_STATUS labelKey mapping, same job status codes, same keys.
 // 'done' is a legacy alias for 'finished' (see DONE_STATUSES in server/routes/dashboard.js).
 const JOB_STATUS_LABEL_KEYS = {
   queued:    'jobs.statusQueued',
@@ -521,9 +525,9 @@ export default function PrinterDetail() {
           display: 'flex', gap: 0, flexWrap: 'wrap',
         }}>
           {[
-            { label: t('printerDetail.statJobsRun'),     value: stats.total_jobs.toLocaleString() },
-            { label: t('printerDetail.statPartsMade'),   value: stats.total_parts.toLocaleString() },
-            { label: t('printerDetail.statSuccessRate'), value: stats.success_rate != null ? `${stats.success_rate}%` : '—' },
+            { label: t('printerDetail.statJobsRun'),     value: stats.total_jobs.toLocaleString(i18n.language) },
+            { label: t('printerDetail.statPartsMade'),   value: stats.total_parts.toLocaleString(i18n.language) },
+            { label: t('printerDetail.statSuccessRate'), value: stats.success_rate != null ? `${stats.success_rate}%` : '-' },
             { label: t('printerDetail.statPrintHours'),  value: formatHours(stats.total_print_ms, t) },
           ].map(({ label, value }) => (
             <div key={label} style={{
@@ -609,7 +613,7 @@ export default function PrinterDetail() {
       {jobHistory.total > 0 && (
         <div style={{ marginTop: 32 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            {t('printerDetail.jobHistory', { count: jobHistory.total.toLocaleString() })}
+            {t('printerDetail.jobHistory', { count: jobHistory.total.toLocaleString(i18n.language) })}
           </div>
 
           <div style={{ overflowX: 'auto' }}>

@@ -6,12 +6,14 @@ import EmptyState from '../components/EmptyState';
 
 // Colors match the Fleet page conventions: blue = printing, green = done.
 // Cancelled gets a line-through as a non-color cue against Queued.
+// 'done' is a legacy alias for 'finished' (see DONE_STATUSES in server/routes/dashboard.js).
 const JOB_STATUS = {
   queued:    { bg: '#1f2937', text: '#9ca3af', labelKey: 'jobs.statusQueued' },
   uploading: { bg: '#3b2c69', text: '#a78bfa', labelKey: 'common.statusUploading' },
   printing:  { bg: '#1e3a5f', text: '#60a5fa', labelKey: 'common.statusPrinting' },
   awaiting:  { bg: '#14532d', text: '#4ade80', labelKey: 'dashboard.awaitingSignoff' },
   finished:  { bg: '#14532d', text: '#86efac', labelKey: 'common.statusFinished' },
+  done:      { bg: '#14532d', text: '#86efac', labelKey: 'common.statusFinished' },
   failed:    { bg: '#7f1d1d', text: '#f87171', labelKey: 'jobs.statusFailed' },
   cancelled: { bg: '#111827', text: '#6b7280', labelKey: 'jobs.statusCancelled', strike: true },
 };
@@ -30,19 +32,19 @@ function displayJobStatus(job) {
 
 const STATUS_OPTIONS = ['all', 'queued', 'uploading', 'printing', 'finished', 'failed', 'cancelled'];
 
-function formatTime(ms) {
+function formatTime(ms, language) {
   if (!ms) return '—';
-  return new Date(ms).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return new Date(ms).toLocaleString(language, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-function formatDuration(startMs, endMs) {
+function formatDuration(startMs, endMs, t) {
   if (!startMs) return '—';
   const ms  = (endMs || Date.now()) - startMs;
   const s   = Math.floor(ms / 1000);
   const h   = Math.floor(s / 3600);
   const m   = Math.floor((s % 3600) / 60);
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
+  if (h > 0) return t('common.durationHoursMinutes', { h, m });
+  return t('common.durationMinutes', { m });
 }
 
 const selectSx = {
@@ -56,7 +58,7 @@ const selectSx = {
 };
 
 export default function Jobs() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [confirm, confirmModal]   = useConfirm();
   const [jobs, setJobs]           = useState([]);
   const [loading, setLoading]     = useState(true);
@@ -188,8 +190,8 @@ export default function Jobs() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#64748b', fontSize: 12 }}>
                   <span>
-                    {formatTime(job.started_at)}
-                    {job.started_at && <> · {formatDuration(job.started_at, job.finished_at || null)}</>}
+                    {formatTime(job.started_at, i18n.language)}
+                    {job.started_at && <> · {formatDuration(job.started_at, job.finished_at || null, t)}</>}
                   </span>
                   {job.status === 'queued' && (
                     <button
@@ -252,11 +254,11 @@ export default function Jobs() {
                       </span>
                     </td>
                     <td style={{ padding: '8px 10px', color: '#64748b', whiteSpace: 'nowrap' }}>
-                      {formatTime(job.started_at)}
+                      {formatTime(job.started_at, i18n.language)}
                     </td>
                     <td style={{ padding: '8px 10px', color: '#64748b' }}>
                       {job.started_at
-                        ? formatDuration(job.started_at, job.finished_at || null)
+                        ? formatDuration(job.started_at, job.finished_at || null, t)
                         : '—'}
                     </td>
                     <td style={{ padding: '8px 10px' }}>

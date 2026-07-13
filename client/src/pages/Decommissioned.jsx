@@ -4,16 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { useConfirm } from '../useConfirm';
 import { useToast } from '../useToast';
 
-function formatTimestamp(t, ms) {
+function formatTimestamp(t, ms, language) {
   if (!ms) return t('decommissioned.unknownTimestamp');
-  return new Date(ms).toLocaleString(undefined, {
+  return new Date(ms).toLocaleString(language, {
     year: 'numeric', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
   });
 }
 
 export default function Decommissioned() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [confirm, confirmModal] = useConfirm();
   const [showToast, toastEl]    = useToast();
@@ -145,7 +145,7 @@ function DecomCard({
   onBeginEdit, onCancelEdit, onChangeDraft, onSave,
   onRecommission, onViewHistory,
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const note = printer.decommission_note || '';
   const textareaRef = useRef(null);
 
@@ -227,7 +227,7 @@ function DecomCard({
 
       {/* Decommission timestamp */}
       <div style={{ fontSize: 11, color: '#475569' }}>
-        {t('decommissioned.removedAt', { date: formatTimestamp(t, printer.decommissioned_at) })}
+        {t('decommissioned.removedAt', { date: formatTimestamp(t, printer.decommissioned_at, i18n.language) })}
       </div>
 
       {/* Note — view or edit */}

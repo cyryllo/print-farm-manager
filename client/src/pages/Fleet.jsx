@@ -46,18 +46,18 @@ function formatTimeRemaining(t, secs) {
 }
 
 // Wall-clock finish time — "done 3:45 PM", with a day marker if it rolls past midnight
-function formatEta(t, secs) {
+function formatEta(t, secs, language) {
   if (secs == null || secs < 0) return null;
   const eta = new Date(Date.now() + secs * 1000);
-  const time = eta.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  const time = eta.toLocaleTimeString(language, { hour: 'numeric', minute: '2-digit' });
   const days = Math.floor((eta - new Date(new Date().setHours(0, 0, 0, 0))) / 86400000);
   if (days === 1) return t('fleet.etaTomorrow', { time });
-  if (days > 1) return t('fleet.etaDay', { day: eta.toLocaleDateString(undefined, { weekday: 'short' }), time });
+  if (days > 1) return t('fleet.etaDay', { day: eta.toLocaleDateString(language, { weekday: 'short' }), time });
   return t('fleet.etaToday', { time });
 }
 
 function PrinterCard({ printer, selected, onToggleSelect, onSetReady, onBadPrint, onUploadFailed, onDecommission, onLinkJob, onOpenDetail }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const shownStatus = displayStatus(printer);
   const style = statusStyle(shownStatus);
   const isUploading = shownStatus === 'UPLOADING';
@@ -105,7 +105,7 @@ function PrinterCard({ printer, selected, onToggleSelect, onSetReady, onBadPrint
   const isPrinting = printer.status === 'PRINTING';
   const pct = isPrinting && printer.job_progress != null ? Math.round(printer.job_progress) : null;
   const timeLeft = isPrinting ? formatTimeRemaining(t, printer.job_time_remaining) : null;
-  const eta      = isPrinting ? formatEta(t, printer.job_time_remaining) : null;
+  const eta      = isPrinting ? formatEta(t, printer.job_time_remaining, i18n.language) : null;
 
   function cardBorder() {
     if (needsOfflineConfirmation || needsUploadConfirmation) return '#92400e';

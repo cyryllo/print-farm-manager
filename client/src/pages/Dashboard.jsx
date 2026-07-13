@@ -17,7 +17,7 @@ const CELL_COLORS = {
   OFFLINE:   { bg: '#0d1117', text: '#1f2937', border: '#161b22' },
 };
 
-// Mirrors Fleet.jsx's STATUS_COLORS labelKey mapping — same canonical status codes,
+// Mirrors Fleet.jsx's STATUS_COLORS labelKey mapping: same canonical status codes,
 // same common.status* keys, so row summaries/tooltips read the same as the Fleet page.
 const STATUS_LABEL_KEYS = {
   PRINTING:   'common.statusPrinting',
@@ -63,31 +63,31 @@ function cellColors(printer) {
   return CELL_COLORS[printer.status] || CELL_COLORS.IDLE;
 }
 
-function formatTime(d) {
-  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+function formatTime(d, language) {
+  return d.toLocaleTimeString(language, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 }
 
-function formatDate(d) {
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+function formatDate(d, language) {
+  return d.toLocaleDateString(language, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function formatDuration(secs) {
+function formatDuration(secs, t) {
   if (!secs) return null;
   const MINUTE = 60, HOUR = 3600, DAY = 86400, WEEK = 604800;
   if (secs >= WEEK) {
     const w = Math.floor(secs / WEEK);
     const d = Math.floor((secs % WEEK) / DAY);
-    return d > 0 ? `${w}wk ${d}d` : `${w}wk`;
+    return d > 0 ? t('common.durationWeeksDays', { w, d }) : t('common.durationWeeks', { w });
   }
   if (secs >= DAY) {
     const d = Math.floor(secs / DAY);
     const h = Math.floor((secs % DAY) / HOUR);
-    return h > 0 ? `${d}d ${h}h` : `${d}d`;
+    return h > 0 ? t('common.durationDaysHours', { d, h }) : t('common.durationDays', { d });
   }
   const h = Math.floor(secs / HOUR);
   const m = Math.floor((secs % HOUR) / MINUTE);
-  if (h > 0) return m > 0 ? `${h}h ${m}m` : `${h}h`;
-  return `${m}m`;
+  if (h > 0) return m > 0 ? t('common.durationHoursMinutes', { h, m }) : t('common.durationHours', { h });
+  return t('common.durationMinutes', { m });
 }
 
 function formatMaterial(grams) {
@@ -131,7 +131,7 @@ function RowSummary({ group }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [data,  setData]  = useState(null);
   const [clock, setClock] = useState(new Date());
   const [allModels, setAllModels] = useState([]);
@@ -248,10 +248,10 @@ export default function Dashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontFamily: 'monospace', fontSize: 28, fontWeight: 700, color: '#60a5fa', lineHeight: 1 }}>
-              {formatTime(clock)}
+              {formatTime(clock, i18n.language)}
             </div>
             <div style={{ fontSize: 12, color: '#475569', marginTop: 3 }}>
-              {formatDate(clock)}
+              {formatDate(clock, i18n.language)}
             </div>
           </div>
           <PollTimer lastPolled={lastPolled} intervalMs={POLL_INTERVAL_MS} size={28} />
@@ -284,7 +284,7 @@ export default function Dashboard() {
                 fontSize: 52, fontWeight: 800, color, lineHeight: 1,
                 fontVariantNumeric: 'tabular-nums',
               }}>
-                {(stats[key] ?? 0).toLocaleString()}
+                {(stats[key] ?? 0).toLocaleString(i18n.language)}
               </div>
               <div style={{
                 fontSize: 11, color: '#475569',
@@ -325,7 +325,7 @@ export default function Dashboard() {
                     return (
                       <div
                         key={printer.id}
-                        title={`${printer.name} — ${statusLabel(t, printer.status)}`}
+                        title={`${printer.name}: ${statusLabel(t, printer.status)}`}
                         style={{
                           width: 54, height: 44, borderRadius: 6,
                           background: c.bg, border: `1px solid ${c.border}`,
@@ -419,11 +419,11 @@ export default function Dashboard() {
                               <span style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 500 }}>{part.name}</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <span style={{ fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
-                                  <span style={{ color: '#e2e8f0' }}>{part.completed_qty.toLocaleString()}</span>
+                                  <span style={{ color: '#e2e8f0' }}>{part.completed_qty.toLocaleString(i18n.language)}</span>
                                   {activeQty > 0 && (
-                                    <span style={{ color: '#60a5fa' }}> +{activeQty.toLocaleString()}</span>
+                                    <span style={{ color: '#60a5fa' }}> +{activeQty.toLocaleString(i18n.language)}</span>
                                   )}
-                                  <span style={{ color: '#475569' }}>{' / '}{part.target_qty.toLocaleString()}</span>
+                                  <span style={{ color: '#475569' }}>{' / '}{part.target_qty.toLocaleString(i18n.language)}</span>
                                 </span>
                                 <span style={{ fontSize: 12, fontWeight: 700, color: part.status === 'closed' ? '#4ade80' : '#60a5fa', minWidth: 34, textAlign: 'right' }}>
                                   {pct}%
@@ -478,7 +478,7 @@ export default function Dashboard() {
                         <span style={{ fontWeight: 700, color: '#cbd5e1' }}>{t('dashboard.soFar')}</span>
                         <span style={{ color: '#374151' }}>·</span>
                         {proj.elapsed_secs > 0 && (
-                          <span style={{ color: '#94a3b8' }}>{formatDuration(proj.elapsed_secs)}</span>
+                          <span style={{ color: '#94a3b8' }}>{formatDuration(proj.elapsed_secs, t)}</span>
                         )}
                         {proj.elapsed_secs > 0 && proj.material_used_grams > 0 && (
                           <span style={{ color: '#374151' }}>·</span>
