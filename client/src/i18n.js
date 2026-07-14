@@ -17,9 +17,14 @@ i18n
       en: { translation: en },
     },
     fallbackLng: 'en',
-    // Collapse region codes (e.g. en-US) to their base code (en) for detection/resolution,
-    // so i18n.language always matches a SUPPORTED_LANGUAGES entry.
+    // Collapse region codes (e.g. en-US) to their base code (en) for detection/resolution.
+    // This alone does NOT constrain i18n.language to SUPPORTED_LANGUAGES: a browser
+    // reporting an unregistered language (e.g. pl) still gets cached as i18n.language,
+    // with t() silently falling back to fallbackLng for the actual strings. supportedLngs
+    // below is what actually keeps detection/caching within the registered set.
     load: 'languageOnly',
+    supportedLngs: SUPPORTED_LANGUAGES.map(l => l.code),
+    nonExplicitSupportedLngs: true,
     interpolation: {
       escapeValue: false, // React already escapes output.
     },

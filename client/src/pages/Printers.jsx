@@ -228,7 +228,7 @@ export default function Printers() {
     };
 
     return { groups, totalShown, totalMatched, decomGroup };
-  }, [printers, models, search, t, i18n.language]);
+  }, [printers, models, search, t, i18n.resolvedLanguage]);
 
   const isSearching = search.trim().length > 0;
   const isOpen = (g) => isSearching ? g.matched.length > 0 : !collapsed.has(g.key);

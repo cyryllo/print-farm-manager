@@ -9,4 +9,3 @@ dist/
 !.claude/skills/
 *.docx
 server/data/backups/
-client/src/locales/pl.json
