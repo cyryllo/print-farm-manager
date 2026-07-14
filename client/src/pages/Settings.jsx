@@ -993,7 +993,9 @@ export default function Settings() {
         )}
         {addResult && (
           <div style={{ marginTop: 14, background: '#14532d', borderRadius: 6, padding: '10px 14px', color: '#4ade80', fontSize: 13 }}>
-            <Trans i18nKey="settings.printerAddedResult" values={{ name: addResult.name, id: addResult.id }} components={[<strong />]} />
+            {/* addResult.name is operator-controlled; render as a plain React child (not
+                through Trans's HTML-parsed interpolation) so React escapes it as text. */}
+            {t('settings.printerAddedPrefix')} <strong>{addResult.name}</strong> {t('settings.printerAddedSuffix', { id: addResult.id })}
           </div>
         )}
       </section>
