@@ -2,6 +2,53 @@
 
 ---
 
+## 2026-07-14: i18n formatting locale: separate regional date/number format from translation language
+
+The previous fix (feeding `i18n.resolvedLanguage` into every `Intl` call so formatting followed
+the translation language) traded one bug for another: `resolvedLanguage` is always a base code
+(`en`), so an operator on an `en-GB` browser lost their day-first date format and got US-style
+dates instead, and decimal numbers (material weight, print hours) always used a dot regardless of
+locale, even once a comma-decimal language is added.
+
+Fixed by splitting these into two concerns that were previously conflated. Translation lookup
+keeps using the resolved base language, unchanged: `supportedLngs` still constrains which
+languages get selected or cached, so nothing about that regressed. A new formatting locale,
+computed by `getFormattingLocale()` in `client/src/i18n.js` and exposed to components via the
+`useFormattingLocale()` hook, keeps the browser's regional variant (`en-GB`, `en-US`) whenever it
+matches the active translation language, and only falls back to the bare resolved language when it
+doesn't (e.g. the operator explicitly picked a language the browser itself doesn't report).
+
+Every `Intl.DateTimeFormat`/`toLocaleString` call site across Printer Detail, Jobs, Decommissioned,
+Fleet's ETA, Settings, and Dashboard now uses this formatting locale instead of the translation
+language. Two decimal-formatting sites, `Dashboard.jsx`'s `formatMaterial` and `PrinterDetail.jsx`'s
+`formatHours`, moved from `toFixed()` (always a dot) to `Intl.NumberFormat` with the same formatting
+locale, preserving their existing precision (2 decimals for kilograms, 1 for hours, trailing zeros
+trimmed either way) while using the locale's own decimal separator. A third `toFixed()` site,
+`Projects.jsx`'s `formatMaterialForInput`, was deliberately left dot-decimal: it pre-fills an
+editable input whose value round-trips to `server/routes/gcodes.js`'s material parser, which only
+accepts a literal dot, so locale-formatting it would produce a value the server rejects.
+
+Verified against a browser context forced to `en-GB`: Printer Detail, Jobs, and Fleet's ETA all
+show day-first dates (`15 Jul 2026, 07:39`, `done 9:59`) while every UI label stays English.
+Verified the `Intl.NumberFormat` calls directly for comma-decimal locales (`pl`, `de`): `1250` grams
+formats as `1,25` kg, `1500` grams as `1,5` kg (trailing zero trimmed), and `1.5` print hours as
+`1,5`, with English output unchanged.
+
+### Changes
+- `client/src/i18n.js`: added `getFormattingLocale()`.
+- `client/src/useFormattingLocale.js` (new): hook wrapping `getFormattingLocale()` for components.
+- `client/src/pages/{Dashboard,PrinterDetail,Jobs,Fleet,Decommissioned,Settings}.jsx`: every date/time
+  `Intl` call site now uses the formatting locale instead of the translation language.
+- `client/src/pages/Dashboard.jsx` (`formatMaterial`), `client/src/pages/PrinterDetail.jsx`
+  (`formatHours`): decimal formatting moved to `Intl.NumberFormat` with the formatting locale.
+- `client/src/pages/Projects.jsx`: documented why `formatMaterialForInput` stays dot-decimal.
+- `docs/web-app.md`: new "Internationalization" section explaining the formatting-locale versus
+  translation-language split; corrected the Printer Detail section's stale `resolvedLanguage` claim.
+- `docs/TRANSLATING.md`: noted that adding a language affects both translated strings and, once an
+  operator's regional browser variant matches it, date/number formatting.
+
+---
+
 ## 2026-07-13: i18n locale formatters: use resolvedLanguage, not the raw detected language
 
 Manual testing surfaced a real bug in the locale-aware formatting just added: every formatter

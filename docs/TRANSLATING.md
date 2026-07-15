@@ -19,7 +19,15 @@ that every other language file must match.
 
 Note: `client/src/i18n.js` sets `load: 'languageOnly'`, so a detected region code (e.g. a browser
 reporting `en-US`) is collapsed to its base code (`en`) before resolution. Register languages with
-their base ISO 639-1 code only, region variants are never distinguished.
+their base ISO 639-1 code only, region variants are never distinguished for translation purposes.
+
+That collapsing is deliberately scoped to *translations* only. Date, time, and number formatting
+(`toLocaleString`, `Intl.NumberFormat`, etc.) uses a separate formatting locale from
+`getFormattingLocale()`/`useFormattingLocale()` in `client/src/i18n.js`, which keeps the browser's
+regional variant (`en-GB`, `en-US`) when it matches the active translation language. Adding a
+language affects both: the translated strings themselves, and, once an operator's browser regional
+variant matches that language, the date/number formatting they see. See "Internationalization" in
+`docs/web-app.md` for the full explanation.
 
 ## Key convention
 

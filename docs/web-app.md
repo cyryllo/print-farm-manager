@@ -166,7 +166,7 @@ Click any row to navigate to `/printers/:id` (the Printer Detail view).
 
 Per-machine history and annotation screen. Reached by clicking a printer card in the Fleet page, clicking a row in the Printers page, or via the "View History" button in the Decommissioned page.
 
-**Header card:** printer name, live status badge (or DECOMMISSIONED), model, IP, connector type, decommissioned timestamp if applicable. Status badge and the job-history status column are translated via `common.status*`/`jobs.status*` keys (the job-history column also maps the legacy `done` job status alias to `common.statusFinished`); dates and durations are formatted using `i18n.resolvedLanguage` (falling back to `i18n.language`, then `en`) and translated `h`/`m` duration units, so a future non-English language doesn't mix translated labels with English-only formatting.
+**Header card:** printer name, live status badge (or DECOMMISSIONED), model, IP, connector type, decommissioned timestamp if applicable. Status badge and the job-history status column are translated via `common.status*`/`jobs.status*` keys (the job-history column also maps the legacy `done` job status alias to `common.statusFinished`); dates, durations, and numbers use the formatting locale (see "Formatting locale vs translation language" below) and translated `h`/`m` duration units, so a future non-English language doesn't mix translated labels with English-only formatting.
 
 **Rename:** a **Rename** button next to the printer name swaps the header into an inline edit form. Save sends `PUT /api/printers/:id` with the new `name`; the server's UNIQUE-name 409 is surfaced inline. Escape or the Cancel button closes the form without saving.
 
@@ -290,6 +290,17 @@ useEffect(() => {
 ```
 
 This matches the server's 15-second poll interval. In practice, the UI is never more than ~30 seconds behind reality (server poll + client poll worst case).
+
+## Internationalization
+
+`client/src/i18n.js` wires up react-i18next. `SUPPORTED_LANGUAGES` and `supportedLngs` constrain which languages the app will actually select or cache, so a browser reporting an unregistered language (e.g. `pl` before that translation file exists) falls back to English text rather than getting stuck showing no translations. See `docs/TRANSLATING.md` for how to add a language.
+
+**Formatting locale vs translation language:** these are two different things and the app tracks them separately.
+
+- **Translation language** (`i18n.resolvedLanguage`) picks which strings `t()` returns. It's always collapsed to a base code (`en`, not `en-US`) and constrained to `SUPPORTED_LANGUAGES`.
+- **Formatting locale** (`getFormattingLocale()` in `i18n.js`, or the `useFormattingLocale()` hook) picks how `Intl.DateTimeFormat`/`Intl.NumberFormat`/`toLocaleString` render dates and numbers. This keeps the browser's *regional* variant (e.g. `en-GB`) when it matches the active translation language, so a UK operator sees day-first dates (`14 Jul 2026`) and a US operator sees month-first (`Jul 14, 2026`) even though both see the same English UI text. If the operator explicitly picks a different language from the Settings switcher, that choice wins over any regional guessing.
+
+Every page that formats a date, duration, or decimal number calls `useFormattingLocale()` and threads the result into its formatter functions, mirroring how `t` itself is threaded through `formatDuration`/`formatMaterial`. One exception: `Projects.jsx`'s `formatMaterialForInput` pre-fills an editable text input whose value round-trips to `server/routes/gcodes.js`'s dot-only material parser, so it deliberately stays dot-decimal regardless of locale.
 
 ## Configuration
 
