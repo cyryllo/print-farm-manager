@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useConfirm } from '../useConfirm';
 import EmptyState from '../components/EmptyState';
+import { useFormattingLocale } from '../useFormattingLocale';
 
 // Colors match the Fleet page conventions: blue = printing, green = done.
 // Cancelled gets a line-through as a non-color cue against Queued.
@@ -32,9 +33,9 @@ function displayJobStatus(job) {
 
 const STATUS_OPTIONS = ['all', 'queued', 'uploading', 'printing', 'finished', 'failed', 'cancelled'];
 
-function formatTime(ms, language) {
+function formatTime(ms, formattingLocale) {
   if (!ms) return '—';
-  return new Date(ms).toLocaleString(language, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return new Date(ms).toLocaleString(formattingLocale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function formatDuration(startMs, endMs, t) {
@@ -58,10 +59,8 @@ const selectSx = {
 };
 
 export default function Jobs() {
-  const { t, i18n } = useTranslation();
-  // resolvedLanguage (not language) so date formatting matches whatever language is
-  // actually rendered, not a detected-but-unregistered browser locale (see i18n.js).
-  const language = i18n.resolvedLanguage || i18n.language || 'en';
+  const { t } = useTranslation();
+  const formattingLocale = useFormattingLocale();
   const [confirm, confirmModal]   = useConfirm();
   const [jobs, setJobs]           = useState([]);
   const [loading, setLoading]     = useState(true);
@@ -193,7 +192,7 @@ export default function Jobs() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#64748b', fontSize: 12 }}>
                   <span>
-                    {formatTime(job.started_at, language)}
+                    {formatTime(job.started_at, formattingLocale)}
                     {job.started_at && <> · {formatDuration(job.started_at, job.finished_at || null, t)}</>}
                   </span>
                   {job.status === 'queued' && (
@@ -257,7 +256,7 @@ export default function Jobs() {
                       </span>
                     </td>
                     <td style={{ padding: '8px 10px', color: '#64748b', whiteSpace: 'nowrap' }}>
-                      {formatTime(job.started_at, language)}
+                      {formatTime(job.started_at, formattingLocale)}
                     </td>
                     <td style={{ padding: '8px 10px', color: '#64748b' }}>
                       {job.started_at

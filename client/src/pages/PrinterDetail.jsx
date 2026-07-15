@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useFormattingLocale } from '../useFormattingLocale';
 
-function formatTimestamp(ms, language) {
+function formatTimestamp(ms, formattingLocale) {
   if (!ms) return '—';
-  return new Date(ms).toLocaleString(language, {
+  return new Date(ms).toLocaleString(formattingLocale, {
     year: 'numeric', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
   });
@@ -90,10 +91,8 @@ const detailInputStyle = {
 };
 
 export default function PrinterDetail() {
-  const { t, i18n } = useTranslation();
-  // resolvedLanguage (not language) so date/number formatting matches whatever language
-  // is actually rendered, not a detected-but-unregistered browser locale (see i18n.js).
-  const language = i18n.resolvedLanguage || i18n.language || 'en';
+  const { t } = useTranslation();
+  const formattingLocale = useFormattingLocale();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -515,7 +514,7 @@ export default function PrinterDetail() {
 
         {printer.decommissioned_at && (
           <div style={{ marginTop: 8, fontSize: 12, color: '#ef4444' }}>
-            {t('printerDetail.decommissionedAt', { date: formatTimestamp(printer.decommissioned_at, language) })}
+            {t('printerDetail.decommissionedAt', { date: formatTimestamp(printer.decommissioned_at, formattingLocale) })}
           </div>
         )}
       </div>
@@ -607,7 +606,7 @@ export default function PrinterDetail() {
                   {ev.note}
                 </div>
               )}
-              <div style={{ fontSize: 11, color: '#475569' }}>{formatTimestamp(ev.created_at, language)}</div>
+              <div style={{ fontSize: 11, color: '#475569' }}>{formatTimestamp(ev.created_at, formattingLocale)}</div>
             </div>
           </div>
         ))}
@@ -643,7 +642,7 @@ export default function PrinterDetail() {
                       <td style={{ padding: '7px 10px', color: '#cbd5e1', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.part_name ?? '—'}</td>
                       <td style={{ padding: '7px 10px', color: '#94a3b8', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.project_name ?? '—'}</td>
                       <td style={{ padding: '7px 10px', color: '#64748b', fontFamily: 'monospace', fontSize: 11, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{job.gcode_filename ?? '—'}</td>
-                      <td style={{ padding: '7px 10px', color: '#64748b', whiteSpace: 'nowrap' }}>{formatTimestamp(job.started_at, language)}</td>
+                      <td style={{ padding: '7px 10px', color: '#64748b', whiteSpace: 'nowrap' }}>{formatTimestamp(job.started_at, formattingLocale)}</td>
                       <td style={{ padding: '7px 10px', color: '#94a3b8', whiteSpace: 'nowrap' }}>{formatDuration(job.duration_ms, t)}</td>
                       <td style={{ padding: '7px 10px', color: '#94a3b8', textAlign: 'center' }}>{job.parts_per_plate}</td>
                       <td style={{ padding: '7px 10px', whiteSpace: 'nowrap' }}>

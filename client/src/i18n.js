@@ -34,4 +34,18 @@ i18n
     },
   });
 
+// WHAT: the locale used for Intl date/number formatting (NOT for choosing translations).
+// WHY: translations resolve to base codes (en) via supportedLngs above, but an en-GB
+//      operator must still see day-first dates and their own number format. If the
+//      browser's regional variant matches the active translation language, keep it
+//      (resolved 'en' + navigator 'en-GB' -> 'en-GB'); otherwise the user deliberately
+//      chose another language (e.g. picked 'pl' from the Settings switcher), so use
+//      that language as-is with no regional guessing.
+export function getFormattingLocale(i18nInstance) {
+  const resolved = i18nInstance.resolvedLanguage || i18nInstance.language || 'en';
+  const navLangs = (typeof navigator !== 'undefined' && navigator.languages) || [];
+  const regional = navLangs.find((l) => l.split('-')[0] === resolved);
+  return regional || resolved;
+}
+
 export default i18n;

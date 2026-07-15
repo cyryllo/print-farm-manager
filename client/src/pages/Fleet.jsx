@@ -5,6 +5,7 @@ import PollTimer from '../components/PollTimer';
 import EmptyState from '../components/EmptyState';
 import { useConfirm } from '../useConfirm';
 import { useToast } from '../useToast';
+import { useFormattingLocale } from '../useFormattingLocale';
 
 const STATUS_COLORS = {
   PRINTING:   { bg: '#1e3a5f', text: '#60a5fa', labelKey: 'common.statusPrinting' },
@@ -58,21 +59,19 @@ function formatTimeRemaining(t, secs) {
 }
 
 // Wall-clock finish time — "done 3:45 PM", with a day marker if it rolls past midnight
-function formatEta(t, secs, language) {
+function formatEta(t, secs, formattingLocale) {
   if (secs == null || secs < 0) return null;
   const eta = new Date(Date.now() + secs * 1000);
-  const time = eta.toLocaleTimeString(language, { hour: 'numeric', minute: '2-digit' });
+  const time = eta.toLocaleTimeString(formattingLocale, { hour: 'numeric', minute: '2-digit' });
   const days = Math.floor((eta - new Date(new Date().setHours(0, 0, 0, 0))) / 86400000);
   if (days === 1) return t('fleet.etaTomorrow', { time });
-  if (days > 1) return t('fleet.etaDay', { day: eta.toLocaleDateString(language, { weekday: 'short' }), time });
+  if (days > 1) return t('fleet.etaDay', { day: eta.toLocaleDateString(formattingLocale, { weekday: 'short' }), time });
   return t('fleet.etaToday', { time });
 }
 
 function PrinterCard({ printer, selected, onToggleSelect, onSetReady, onBadPrint, onUploadFailed, onDecommission, onLinkJob, onOpenDetail }) {
-  const { t, i18n } = useTranslation();
-  // resolvedLanguage (not language) so the ETA time matches whatever language is actually
-  // rendered, not a detected-but-unregistered browser locale (see i18n.js).
-  const language = i18n.resolvedLanguage || i18n.language || 'en';
+  const { t } = useTranslation();
+  const formattingLocale = useFormattingLocale();
   const shownStatus = displayStatus(printer);
   const style = statusStyle(shownStatus);
   const isUploading = shownStatus === 'UPLOADING';
@@ -120,7 +119,7 @@ function PrinterCard({ printer, selected, onToggleSelect, onSetReady, onBadPrint
   const isPrinting = printer.status === 'PRINTING';
   const pct = isPrinting && printer.job_progress != null ? Math.round(printer.job_progress) : null;
   const timeLeft = isPrinting ? formatTimeRemaining(t, printer.job_time_remaining) : null;
-  const eta      = isPrinting ? formatEta(t, printer.job_time_remaining, language) : null;
+  const eta      = isPrinting ? formatEta(t, printer.job_time_remaining, formattingLocale) : null;
 
   function cardBorder() {
     if (needsOfflineConfirmation || needsUploadConfirmation) return '#92400e';

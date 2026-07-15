@@ -3,6 +3,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import { useToast } from '../useToast';
 import { useConfirm } from '../useConfirm';
 import { SUPPORTED_LANGUAGES } from '../i18n';
+import { useFormattingLocale } from '../useFormattingLocale';
 
 function LanguageSwitcher() {
   const { t, i18n } = useTranslation();
@@ -58,10 +59,8 @@ const CREDENTIAL_HELP_KEYS = {
 };
 
 export default function Settings() {
-  const { t, i18n } = useTranslation();
-  // resolvedLanguage (not language) so the timestamp matches whatever language is actually
-  // rendered, not a detected-but-unregistered browser locale (see i18n.js).
-  const language = i18n.resolvedLanguage || i18n.language || 'en';
+  const { t } = useTranslation();
+  const formattingLocale = useFormattingLocale();
   const [showToast, toastEl] = useToast();
   const [confirm, confirmModal] = useConfirm();
   const [importing, setImporting] = useState(false);
@@ -498,7 +497,7 @@ export default function Settings() {
               <div style={{ flex: 1 }}>
                 <div style={{ color: '#fca5a5', marginBottom: 4 }}>{alert.message}</div>
                 <div style={{ color: '#475569', fontSize: 12 }}>
-                  {new Date(alert.timestamp).toLocaleString(language)}
+                  {new Date(alert.timestamp).toLocaleString(formattingLocale)}
                 </div>
               </div>
               <button

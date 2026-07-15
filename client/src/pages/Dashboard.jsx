@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import PollTimer from '../components/PollTimer';
+import { useFormattingLocale } from '../useFormattingLocale';
 
 const POLL_INTERVAL_MS = 15000;
 
@@ -63,12 +64,12 @@ function cellColors(printer) {
   return CELL_COLORS[printer.status] || CELL_COLORS.IDLE;
 }
 
-function formatTime(d, language) {
-  return d.toLocaleTimeString(language, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+function formatTime(d, formattingLocale) {
+  return d.toLocaleTimeString(formattingLocale, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 }
 
-function formatDate(d, language) {
-  return d.toLocaleDateString(language, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+function formatDate(d, formattingLocale) {
+  return d.toLocaleDateString(formattingLocale, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function formatDuration(secs, t) {
@@ -131,10 +132,8 @@ function RowSummary({ group }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
-  const { t, i18n } = useTranslation();
-  // resolvedLanguage (not language) so date/number formatting matches whatever language
-  // is actually rendered, not a detected-but-unregistered browser locale (see i18n.js).
-  const language = i18n.resolvedLanguage || i18n.language || 'en';
+  const { t } = useTranslation();
+  const formattingLocale = useFormattingLocale();
   const [data,  setData]  = useState(null);
   const [clock, setClock] = useState(new Date());
   const [allModels, setAllModels] = useState([]);
@@ -251,10 +250,10 @@ export default function Dashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontFamily: 'monospace', fontSize: 28, fontWeight: 700, color: '#60a5fa', lineHeight: 1 }}>
-              {formatTime(clock, language)}
+              {formatTime(clock, formattingLocale)}
             </div>
             <div style={{ fontSize: 12, color: '#475569', marginTop: 3 }}>
-              {formatDate(clock, language)}
+              {formatDate(clock, formattingLocale)}
             </div>
           </div>
           <PollTimer lastPolled={lastPolled} intervalMs={POLL_INTERVAL_MS} size={28} />
@@ -287,7 +286,7 @@ export default function Dashboard() {
                 fontSize: 52, fontWeight: 800, color, lineHeight: 1,
                 fontVariantNumeric: 'tabular-nums',
               }}>
-                {(stats[key] ?? 0).toLocaleString(language)}
+                {(stats[key] ?? 0).toLocaleString(formattingLocale)}
               </div>
               <div style={{
                 fontSize: 11, color: '#475569',
@@ -425,11 +424,11 @@ export default function Dashboard() {
                               <span style={{ fontSize: 12, color: '#e2e8f0', fontWeight: 500 }}>{part.name}</span>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 <span style={{ fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
-                                  <span style={{ color: '#e2e8f0' }}>{part.completed_qty.toLocaleString(language)}</span>
+                                  <span style={{ color: '#e2e8f0' }}>{part.completed_qty.toLocaleString(formattingLocale)}</span>
                                   {activeQty > 0 && (
-                                    <span style={{ color: '#60a5fa' }}> +{activeQty.toLocaleString(language)}</span>
+                                    <span style={{ color: '#60a5fa' }}> +{activeQty.toLocaleString(formattingLocale)}</span>
                                   )}
-                                  <span style={{ color: '#475569' }}>{' / '}{part.target_qty.toLocaleString(language)}</span>
+                                  <span style={{ color: '#475569' }}>{' / '}{part.target_qty.toLocaleString(formattingLocale)}</span>
                                 </span>
                                 <span style={{ fontSize: 12, fontWeight: 700, color: part.status === 'closed' ? '#4ade80' : '#60a5fa', minWidth: 34, textAlign: 'right' }}>
                                   {pct}%

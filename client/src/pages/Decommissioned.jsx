@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useConfirm } from '../useConfirm';
 import { useToast } from '../useToast';
+import { useFormattingLocale } from '../useFormattingLocale';
 
-function formatTimestamp(t, ms, language) {
+function formatTimestamp(t, ms, formattingLocale) {
   if (!ms) return t('decommissioned.unknownTimestamp');
-  return new Date(ms).toLocaleString(language, {
+  return new Date(ms).toLocaleString(formattingLocale, {
     year: 'numeric', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
   });
@@ -145,10 +146,8 @@ function DecomCard({
   onBeginEdit, onCancelEdit, onChangeDraft, onSave,
   onRecommission, onViewHistory,
 }) {
-  const { t, i18n } = useTranslation();
-  // resolvedLanguage (not language) so the date matches whatever language is actually
-  // rendered, not a detected-but-unregistered browser locale (see i18n.js).
-  const language = i18n.resolvedLanguage || i18n.language || 'en';
+  const { t } = useTranslation();
+  const formattingLocale = useFormattingLocale();
   const note = printer.decommission_note || '';
   const textareaRef = useRef(null);
 
@@ -230,7 +229,7 @@ function DecomCard({
 
       {/* Decommission timestamp */}
       <div style={{ fontSize: 11, color: '#475569' }}>
-        {t('decommissioned.removedAt', { date: formatTimestamp(t, printer.decommissioned_at, language) })}
+        {t('decommissioned.removedAt', { date: formatTimestamp(t, printer.decommissioned_at, formattingLocale) })}
       </div>
 
       {/* Note — view or edit */}
