@@ -20,10 +20,16 @@ function formatDuration(ms, t) {
   return t('common.durationHoursMinutes', { h, m });
 }
 
-function formatHours(ms, t) {
+function formatHours(ms, t, formattingLocale) {
   if (!ms || ms <= 0) return t('common.durationHours', { h: 0 });
   const h = ms / 3600000;
-  return t('common.durationHours', { h: h >= 100 ? Math.round(h) : h.toFixed(1) });
+  // maximumFractionDigits (no minimum) trims trailing zeros the same way toFixed did,
+  // while using the locale's own decimal separator instead of always a dot.
+  const formatted = new Intl.NumberFormat(formattingLocale, {
+    maximumFractionDigits: h >= 100 ? 0 : 1,
+    useGrouping: false,
+  }).format(h);
+  return t('common.durationHours', { h: formatted });
 }
 
 const EVENT_META = {
@@ -527,10 +533,10 @@ export default function PrinterDetail() {
           display: 'flex', gap: 0, flexWrap: 'wrap',
         }}>
           {[
-            { label: t('printerDetail.statJobsRun'),     value: stats.total_jobs.toLocaleString(language) },
-            { label: t('printerDetail.statPartsMade'),   value: stats.total_parts.toLocaleString(language) },
+            { label: t('printerDetail.statJobsRun'),     value: stats.total_jobs.toLocaleString(formattingLocale) },
+            { label: t('printerDetail.statPartsMade'),   value: stats.total_parts.toLocaleString(formattingLocale) },
             { label: t('printerDetail.statSuccessRate'), value: stats.success_rate != null ? `${stats.success_rate}%` : '-' },
-            { label: t('printerDetail.statPrintHours'),  value: formatHours(stats.total_print_ms, t) },
+            { label: t('printerDetail.statPrintHours'),  value: formatHours(stats.total_print_ms, t, formattingLocale) },
           ].map(({ label, value }) => (
             <div key={label} style={{
               flex: '1 1 120px', padding: '4px 16px 4px 0', minWidth: 100,

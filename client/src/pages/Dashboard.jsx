@@ -91,10 +91,13 @@ function formatDuration(secs, t) {
   return t('common.durationMinutes', { m });
 }
 
-function formatMaterial(grams, t) {
+function formatMaterial(grams, t, formattingLocale) {
   if (grams == null) return null;
   if (grams < 1000) return t('common.massGrams', { g: Math.round(grams) });
-  const kg = (grams / 1000).toFixed(2).replace(/\.?0+$/, '');
+  // maximumFractionDigits with no minimum trims trailing zeros the same way the
+  // previous toFixed(2).replace(/\.?0+$/, '') did, while using the locale's own
+  // decimal separator (',' for pl/de, '.' for en) instead of always a dot.
+  const kg = new Intl.NumberFormat(formattingLocale, { maximumFractionDigits: 2, useGrouping: false }).format(grams / 1000);
   return t('common.massKilograms', { kg });
 }
 
@@ -489,7 +492,7 @@ export default function Dashboard() {
                           <span style={{ color: '#374151' }}>·</span>
                         )}
                         {proj.material_used_grams > 0 && (
-                          <span style={{ color: '#a78bfa' }}>{formatMaterial(proj.material_used_grams, t)}</span>
+                          <span style={{ color: '#a78bfa' }}>{formatMaterial(proj.material_used_grams, t, formattingLocale)}</span>
                         )}
                         {proj.model_breakdown && proj.model_breakdown.length > 1 && (
                           <>

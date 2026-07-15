@@ -15,6 +15,11 @@ function formatDurationForInput(secs) {
   return `${m}m`;
 }
 
+// Pre-fills an editable text input (materialDraft), not a translated display string,
+// so this deliberately stays dot-decimal regardless of locale: the value round-trips
+// to server/routes/gcodes.js's normalizeMaterialGrams(), whose regex only accepts a
+// literal dot. Locale-formatting this would produce a value the server rejects if the
+// operator saves the field without editing it.
 function formatMaterialForInput(grams) {
   if (grams == null) return '';
   if (grams < 1000) return `${Math.round(grams)}g`;
